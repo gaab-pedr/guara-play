@@ -60,6 +60,7 @@ class LocalServer(private val ctx: Context, private val syncer: Syncer) {
                     method == "GET" && path == "/api/player" -> manifest(out)
                     method == "POST" && path == "/api/player/capture" -> forward("capture", inp, out, h)
                     method == "POST" && path == "/api/player/log" -> forward("log", inp, out, h)
+                    method == "GET" && path == "/api/player/widget" -> widget(parts[1].substringAfter('?', ""), out)
                     method == "GET" && path.startsWith("/media/") -> media(out, path.removePrefix("/media/"), h["range"])
                     else -> send(out, 404, "text/plain", "nao encontrado".toByteArray())
                 }
@@ -100,6 +101,21 @@ class LocalServer(private val ctx: Context, private val syncer: Syncer) {
     }
 
     /** Repassa a captura de tela do player ao servidor, usando a identidade nativa da tela. */
+    // clima e notícias: pede ao servidor (sem internet, responde 502 e o player usa o último valor guardado)
+    private fun widget(query: String, out: OutputStream) {
+        var code = 502
+        var body = "{}".toByteArray()
+        try {
+            val k = query.split("&").firstOrNull { it.startsWith("k=") }?.substring(2)?.filter { it.isLetterOrDigit() } ?: ""
+            val c = URL("${Config.url(ctx)}/api/player/widget?device=${Config.deviceId(ctx)}&k=$k").openConnection() as HttpURLConnection
+            c.connectTimeout = 8_000; c.readTimeout = 20_000
+            code = c.responseCode
+            body = (if (code in 200..299) c.inputStream else c.errorStream)?.use { it.readBytes() } ?: "{}".toByteArray()
+            c.disconnect()
+        } catch (_: Exception) { code = 502 }
+        send(out, code, "application/json", body)
+    }
+
     private fun forward(endpoint: String, inp: InputStream, out: OutputStream, h: Map<String, String>) {
         val n = h["content-length"]?.toIntOrNull() ?: 0
         if (n <= 0 || n > 3_000_000) return send(out, 400, "application/json", "{}".toByteArray())

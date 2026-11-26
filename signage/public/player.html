@@ -10,6 +10,10 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,
 #stage img,#stage video{width:100%;height:100%;object-fit:var(--fit,contain)}
 .big{font-size:min(18vw,18vh);font-weight:700;letter-spacing:.08em;font-variant-numeric:tabular-nums}
 .sub{font-size:min(4vw,4vh);opacity:.7;margin-top:1vh}
+.w{width:100%;height:100%;display:flex;overflow:hidden;box-sizing:border-box}
+.f-sans{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}.f-serif{font-family:Georgia,"Times New Roman",serif}.f-mono{font-family:ui-monospace,Menlo,Consolas,monospace}.f-cond{font-family:"Arial Narrow","Roboto Condensed",Arial,sans-serif;font-stretch:condensed}
+@keyframes tkr{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.z{position:absolute;overflow:hidden}.zi{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
 </style></head><body>
 <div id="stage"></div>
 <script>
@@ -51,6 +55,7 @@ async function poll() {
 }
 function apply() {
   if (!man || man.connecting) {
+    cur = ''; run++; stop();
     const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     return msg('Conectando…', man && man.error ? 'Sem conexão com ' + esc(man.server || '') + '<br>' + esc(man.error) : 'Aguardando o servidor');
   }
@@ -63,15 +68,36 @@ function apply() {
   if (man.version === cur) return;
   cur = man.version; run++; stop();
   document.body.dataset.rot = man.rotation || 0; document.body.style.setProperty('--fit', man.fit || 'contain');
-  prefetch(man.items); loop(run);
+  prefetch(man.zones ? man.zones.flatMap(z => z.items) : man.items); build(run);
 }
 
-async function loop(id) {
-  if (!man.items.length) return msg('Playlist vazia', 'Adicione conteúdo no painel');
+// Cada zona tem a sua própria lista, tocando de forma independente. Sem zonas, é uma zona única em tela cheia.
+let zs = [];
+stop = () => zs.forEach(z => z.stop());
+function build(id) {
+  const zones = man.zones || [{ x: 0, y: 0, w: 100, h: 100, rot: 0, fit: '', items: man.items, full: true }];
+  const big = zones.reduce((b, d, i) => d.w * d.h > zones[b].w * zones[b].h ? i : b, 0); // só a maior zona toca som
+  stage.replaceChildren(); zs = [];
+  zones.forEach((zd, i) => {
+    const host = document.createElement('div'), el = document.createElement('div'); host.className = 'z'; el.className = 'zi';
+    host.style.cssText = `left:${zd.x}%;top:${zd.y}%;width:${zd.w}%;height:${zd.h}%`; if (zd.fit) host.style.setProperty('--fit', zd.fit);
+    host.appendChild(el); stage.appendChild(host); zs.push({ stop: () => {}, el, host, zd, audio: i === big });
+  });
+  zs.forEach(z => { // rotação própria da zona, medida depois de entrar na tela
+    const W = z.host.clientWidth, H = z.host.clientHeight, r = z.zd.rot || 0, st = z.el.style;
+    if (r === 90) st.cssText = `left:${W}px;top:0;width:${H}px;height:${W}px;transform-origin:0 0;transform:rotate(90deg)`;
+    else if (r === 270) st.cssText = `left:0;top:${H}px;width:${H}px;height:${W}px;transform-origin:0 0;transform:rotate(-90deg)`;
+    else { st.cssText = 'left:0;top:0;width:100%;height:100%'; if (r === 180) st.transform = 'rotate(180deg)'; }
+    loop(z, id);
+  });
+}
+async function loop(z, id) {
+  const items = z.zd.items;
+  if (!items.length) { if (z.zd.full) msg('Playlist vazia', 'Adicione conteúdo no painel'); return; }
   let i = 0;
   while (id === run) {
-    const it = man.items[i++ % man.items.length];
-    try { await play(it); } catch { await wait(1500); }
+    const it = items[i++ % items.length];
+    try { await play(it, z); } catch { await wait(1500); }
   }
 }
 // ---- relatório de exibição: soma, por hora (UTC) e conteúdo, quanto tempo cada coisa ficou na tela ----
@@ -94,19 +120,67 @@ async function flushLog() { // envia o acumulado; se estiver sem internet, guard
   } catch {}
 }
 setInterval(flushLog, 60000);
-async function play(it) {
+// ---- widgets: clima e notícias (os dados vêm do servidor; sem internet, mostra o último valor guardado) ----
+const hx = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const wIcon = (c, day) => c === 0 ? (day ? '☀️' : '🌙') : c <= 2 ? (day ? '🌤️' : '☁️') : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 57 ? '🌦️' : c <= 67 ? '🌧️' : c <= 77 ? '❄️' : c <= 82 ? '🌧️' : c <= 86 ? '❄️' : '⛈️';
+const wDesc = c => c === 0 ? 'Céu limpo' : c === 1 ? 'Poucas nuvens' : c === 2 ? 'Parcialmente nublado' : c === 3 ? 'Nublado' : c <= 48 ? 'Neblina' : c <= 57 ? 'Garoa' : c <= 67 ? 'Chuva' : c <= 77 ? 'Neve' : c <= 82 ? 'Pancadas de chuva' : c <= 86 ? 'Neve' : 'Tempestade';
+async function wData(it) {
+  const key = 'w_' + it.wk;
+  try { const r = await fetch('/api/player/widget?device=' + dev + '&k=' + it.wk); if (r.ok) { const j = await r.json(); localStorage[key] = JSON.stringify({ at: j.at, data: j.data }); } } catch {}
+  return jget(key, null);
+}
+function wxHtml(it, d, W, H) {
+  const c = it.cfg, k = c.scale / 100, base = `class="w f-${c.font}" style="background:${c.bg};color:${c.color};`;
+  if (!d) return `<div ${base}align-items:center;justify-content:center;text-align:center;font-size:${Math.min(H * .3, W * .06) * k}px">Sem dados de clima</div>`;
+  const cred = c.credit ? `<span style="opacity:.55;font-size:${Math.max(8, Math.min(H * .07, W * .018))}px;white-space:nowrap">Open-Meteo.com</span>` : '';
+  if (H < W * .25) { const fs = H * .5 * k; // faixa fina: tudo em uma linha
+    return `<div ${base}align-items:center;justify-content:center;gap:${fs * .5}px;padding:0 ${fs * .5}px;font-size:${fs}px;white-space:nowrap"><span>${wIcon(d.code, d.day)}</span><b style="color:${c.accent}">${d.temp}°</b><span style="font-size:.6em">${hx(c.city)}</span><span style="font-size:.5em;opacity:.85">↑${d.max}° ↓${d.min}°${d.rain != null ? ' · 💧' + d.rain + '%' : ''}</span>${cred}</div>`; }
+  const u = Math.min(W, H * 1.3) * k, fc = c.forecast && H > W * .5 && d.next?.length ? `<div style="display:flex;gap:${u * .06}px;margin-top:${u * .03}px;font-size:${u * .045}px">${d.next.map(n => `<div style="text-align:center"><div style="opacity:.8">${hx(n.d)}</div><div style="font-size:1.8em">${wIcon(n.code, 1)}</div><div>${n.max}° <span style="opacity:.7">${n.min}°</span></div></div>`).join('')}</div>` : '';
+  return `<div ${base}flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:${u * .01}px;padding:${u * .03}px"><div style="font-size:${u * .07}px;opacity:.9">${hx(c.city)}</div><div style="font-size:${u * .2}px;line-height:1">${wIcon(d.code, d.day)}</div><div style="font-size:${u * .18}px;line-height:1;font-weight:700;color:${c.accent}">${d.temp}°C</div><div style="font-size:${u * .06}px">${wDesc(d.code)}</div><div style="font-size:${u * .05}px;opacity:.85">↑ ${d.max}°  ↓ ${d.min}°${d.rain != null ? '  ·  💧 ' + d.rain + '%' : ''}</div>${fc}${cred}</div>`;
+}
+function tickerHtml(it, d, W, H) {
+  const c = it.cfg, fs = H * .5 * c.scale / 100, list = d?.items || [];
+  const txt = list.length ? list.map(x => `<span style="padding:0 ${fs * .6}px">${hx(x.t)}</span><span style="color:${c.accent}">●</span>`).join('') : `<span style="padding:0 ${fs}px;opacity:.7">Carregando notícias…</span>`;
+  return `<div class="w f-${c.font}" style="background:${c.bg};color:${c.color};align-items:center;font-size:${fs}px">${c.label ? `<div style="background:${c.accent};color:#fff;font-weight:700;padding:0 ${fs * .5}px;height:100%;display:flex;align-items:center;white-space:nowrap;font-size:.8em;position:relative;z-index:1">${hx(c.label)}</div>` : ''}<div class="cont" style="flex:1;overflow:hidden;height:100%;display:flex;align-items:center"><div class="run" style="display:inline-flex;white-space:nowrap;will-change:transform">${txt}</div></div></div>`;
+}
+function slideHtml(c, x, W, H, i, n) {
+  const fs = Math.min(H * .14, W * .055) * c.scale / 100 * Math.max(.55, Math.min(1, 80 / (x.t.length || 1)));
+  return `<div class="w f-${c.font}" style="background:${c.bg};color:${c.color};flex-direction:column;justify-content:center;padding:${W * .05}px;gap:${fs * .5}px;text-align:left"><div style="display:flex;gap:${fs * .4}px;align-items:center;font-size:${fs * .45}px;color:${c.accent};font-weight:700;letter-spacing:.08em">${hx(c.label)}<span style="opacity:.7;font-weight:400">${i + 1}/${n}</span></div><div style="font-size:${fs}px;line-height:1.2;font-weight:600">${hx(x.t)}</div><div style="font-size:${fs * .42}px;opacity:.7">${hx(x.s)}</div></div>`;
+}
+function wDraw(it, z, d) {
+  const W = z.el.clientWidth || innerWidth, H = z.el.clientHeight || innerHeight, c = it.cfg;
+  if (it.type === 'weather') { z.el.innerHTML = wxHtml(it, d, W, H); return; }
+  const list = d?.items || [];
+  if (c.mode === 'slides' && list.length) { const i = (z.idx || 0) % list.length; z.el.innerHTML = slideHtml(c, list[i], W, H, i, list.length); return; }
+  z.el.innerHTML = tickerHtml(it, d, W, H);
+  const run = z.el.querySelector('.run'), cont = z.el.querySelector('.cont'); if (!run || !list.length) return;
+  const one = run.scrollWidth, m = Math.max(1, Math.ceil(cont.clientWidth / Math.max(1, one))), half = run.innerHTML.repeat(m); // repete até encher, e duplica para o laço ficar contínuo
+  run.innerHTML = half + half; run.style.animation = `tkr ${(one * m) / Math.max(15, c.speed * (W / 1280))}s linear infinite`;
+}
+async function widget(it, z, cancel) {
+  const keep = z.cur === it.wk && z.el.firstChild; let d = jget('w_' + it.wk, null)?.data, alive = true; z.idx ||= 0;
+  if (!keep) { z.cur = it.wk; wDraw(it, z, d); }
+  const refresh = async () => { const r = await wData(it); if (alive && r?.data && JSON.stringify(r.data) !== JSON.stringify(d)) { d = r.data; wDraw(it, z, d); } };
+  refresh(); const t1 = setInterval(refresh, 300000), t3 = setInterval(() => { if (!d) refresh(); }, 20000),
+    t2 = it.type === 'news' && it.cfg.mode === 'slides' ? setInterval(() => { z.idx++; wDraw(it, z, d); }, it.cfg.interval * 1000) : 0;
+  try { await Promise.race([wait(it.seconds * 1000), cancel]); } finally { alive = false; clearInterval(t1); clearInterval(t3); if (t2) clearInterval(t2); }
+}
+async function play(it, z) {
   let t0 = 0; // só conta a partir do momento em que o conteúdo realmente apareceu
-  const cancel = new Promise(r => stop = r);
+  const cancel = new Promise(r => z.stop = r);
   const work = (async () => {
+    if (it.type === 'weather' || it.type === 'news') { t0 = Date.now(); await widget(it, z, cancel); return; }
+    z.cur = '';
     if (it.type === 'clock') {
-      const tick = () => { const d = new Date(); stage.innerHTML = `<div><div class="big">${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div><div class="sub">${d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>`; };
+      const tick = () => { const d = new Date(), fs = Math.min((z.el.clientWidth || innerWidth) * 0.2, (z.el.clientHeight || innerHeight) * 0.3);
+        z.el.innerHTML = `<div><div class="big" style="font-size:${fs}px">${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div><div class="sub" style="font-size:${fs * 0.22}px">${d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>`; };
       tick(); t0 = Date.now(); const t = setInterval(tick, 1000); try { await Promise.race([wait(it.seconds * 1000), cancel]); } finally { clearInterval(t); } return;
     }
     const url = NATIVE ? it.url : URL.createObjectURL(await fetchBlob(it.url)); // no app: toca direto do arquivo, sem carregar na memória
     try {
-      if (it.type === 'image') { stage.innerHTML = `<img src="${url}">`; t0 = Date.now(); await wait(it.seconds * 1000); }
-      else await new Promise((ok, no) => { const v = document.createElement('video'); v.src = url; v.muted = !man.sound; v.autoplay = v.playsInline = true;
-        v.onplaying = () => { if (!t0) t0 = Date.now(); }; v.onended = ok; v.onerror = no; stage.replaceChildren(v); v.play().catch(() => { v.muted = true; v.play().catch(no); }); });
+      if (it.type === 'image') { z.el.innerHTML = `<img src="${url}">`; t0 = Date.now(); await wait(it.seconds * 1000); }
+      else await new Promise((ok, no) => { const v = document.createElement('video'); v.src = url; v.muted = !(man.sound && z.audio); v.autoplay = v.playsInline = true;
+        v.onplaying = () => { if (!t0) t0 = Date.now(); }; v.onended = ok; v.onerror = no; z.el.replaceChildren(v); v.play().catch(() => { v.muted = true; v.play().catch(no); }); });
     } finally { if (!NATIVE) URL.revokeObjectURL(url); }
   })();
   try { await Promise.race([work, cancel]); } finally { if (t0) rec(it, Date.now() - t0); }
@@ -120,16 +194,25 @@ async function doCapture() {
     const vert = (+man.rotation || 0) % 180 !== 0, W0 = vert ? innerHeight : innerWidth, H0 = vert ? innerWidth : innerHeight, k = Math.min(1, 640 / W0);
     const W = Math.round(W0 * k), H = Math.round(H0 * k), c = document.createElement('canvas'); c.width = W; c.height = H;
     const g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    const el = stage.querySelector('img,video');
-    if (el) {
-      const sw = el.videoWidth || el.naturalWidth, sh = el.videoHeight || el.naturalHeight;
-      if (sw && sh) { const fit = man.fit || 'contain'; let dw = W, dh = H, dx = 0, dy = 0;
-        if (fit !== 'fill') { const f = fit === 'cover' ? Math.max(W / sw, H / sh) : Math.min(W / sw, H / sh); dw = sw * f; dh = sh * f; dx = (W - dw) / 2; dy = (H - dh) / 2; }
-        g.drawImage(el, dx, dy, dw, dh); }
-    } else { // relógio ou mensagem
-      g.fillStyle = '#fff'; g.textAlign = 'center';
-      g.font = `700 ${H * 0.18}px sans-serif`; g.fillText(stage.querySelector('.big')?.textContent || '', W / 2, H / 2);
-      g.font = `${H * 0.05}px sans-serif`; g.fillText(stage.querySelector('.sub')?.textContent || '', W / 2, H / 2 + H * 0.1);
+    const zl = stage.querySelector('.z') ? zs : [{ el: stage, zd: { x: 0, y: 0, w: 100, h: 100, fit: '' } }];
+    for (const z of zl) { // desenha cada zona no seu retângulo (a rotação própria da zona não é considerada na captura)
+      const X = W * z.zd.x / 100, Y = H * z.zd.y / 100, ZW = W * z.zd.w / 100, ZH = H * z.zd.h / 100, el = z.el.querySelector('img,video');
+      g.save(); g.beginPath(); g.rect(X, Y, ZW, ZH); g.clip();
+      if (el) {
+        const sw = el.videoWidth || el.naturalWidth, sh = el.videoHeight || el.naturalHeight;
+        if (sw && sh) { const fit = z.zd.fit || man.fit || 'contain'; let dw = ZW, dh = ZH, dx = X, dy = Y;
+          if (fit !== 'fill') { const f = fit === 'cover' ? Math.max(ZW / sw, ZH / sh) : Math.min(ZW / sw, ZH / sh); dw = sw * f; dh = sh * f; dx = X + (ZW - dw) / 2; dy = Y + (ZH - dh) / 2; }
+          g.drawImage(el, dx, dy, dw, dh); }
+      } else if (z.el.querySelector('.w')) { // widget: fundo e texto aproximados
+        const w = z.el.querySelector('.w'); g.fillStyle = getComputedStyle(w).backgroundColor; g.fillRect(X, Y, ZW, ZH);
+        g.fillStyle = getComputedStyle(w).color; g.textAlign = 'center'; g.font = `600 ${Math.min(ZH * .3, ZW * .05)}px sans-serif`;
+        g.fillText((w.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 70), X + ZW / 2, Y + ZH / 2);
+      } else { // relógio ou mensagem
+        const fs = Math.min(ZW * 0.2, ZH * 0.3); g.fillStyle = '#fff'; g.textAlign = 'center';
+        g.font = `700 ${fs}px sans-serif`; g.fillText(z.el.querySelector('.big')?.textContent || '', X + ZW / 2, Y + ZH / 2);
+        g.font = `${fs * 0.22}px sans-serif`; g.fillText(z.el.querySelector('.sub')?.textContent || '', X + ZW / 2, Y + ZH / 2 + fs * 0.4);
+      }
+      g.restore();
     }
     const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.7));
     await fetch('/api/player/capture?device=' + dev, { method: 'POST', body: blob });
