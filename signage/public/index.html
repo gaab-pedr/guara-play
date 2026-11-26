@@ -50,12 +50,44 @@ dialog h2{margin:0 0 12px;font-size:17px}.f{display:flex;flex-direction:column;g
 @media(max-width:820px){.app{flex-direction:column}.side{width:auto;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center}.foot{flex-direction:row;margin:0}.side nav{display:flex;flex-wrap:wrap}.gs{margin:0}main{padding:14px}}
 .zc{position:relative;background-color:#0b0b0b;border:1px solid var(--line);border-radius:6px;touch-action:none;user-select:none;background-image:linear-gradient(to right,rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.07) 1px,transparent 1px)}
 .zn{position:absolute;box-sizing:border-box;border:2px solid;border-radius:4px;cursor:move;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:#fff;overflow:hidden;text-align:center}
-.zn b{font-size:12px}.zn .x{position:absolute;top:2px;right:2px;width:16px;height:16px;line-height:15px;text-align:center;border-radius:3px;background:rgba(0,0,0,.55);cursor:pointer;font-size:13px}
+.zn .lb2{font-size:10px;opacity:.95;max-width:96%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.zn .lb2.no{color:#fecaca;font-style:italic}.zn b{font-size:12px}.zn .x{position:absolute;top:2px;right:2px;width:16px;height:16px;line-height:15px;text-align:center;border-radius:3px;background:rgba(0,0,0,.55);cursor:pointer;font-size:13px}
 .zn .rs{position:absolute;right:0;bottom:0;width:14px;height:14px;cursor:nwse-resize;background:rgba(255,255,255,.6);border-radius:3px 0 0 0}
 .zrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)}.zrow i{width:12px;height:12px;border-radius:3px;display:inline-block}
 .zgrid{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}.zp{flex:1 1 300px;min-width:260px}
 .zmini{position:relative;width:96px;aspect-ratio:16/9;background:#111;border-radius:3px;overflow:hidden}.zmini.v{width:34px;aspect-ratio:9/16}.zmini i{position:absolute;border:1px solid rgba(255,255,255,.6);box-sizing:border-box}
 .wth{display:flex;align-items:center;justify-content:center;background:#123;color:#fff;font-size:20px;cursor:default}
+.side .sq{display:flex;gap:6px}.side .sq .sb{flex:1;display:flex;gap:8px;align-items:center;background:#17181b;border:1px solid #26282d;color:var(--sideink);border-radius:8px;padding:8px 10px;text-align:left}.side .sq .sa{background:#17181b;border:1px solid #26282d;color:var(--ac);border-radius:8px;padding:8px 11px}
+.gs{display:flex;align-items:center;justify-content:center;gap:8px}.gs .gi{font-weight:800;font-size:17px;line-height:1}
+.foot .row{display:flex;gap:6px}.foot .row>button{flex:1;text-align:center;padding:8px;display:flex;align-items:center;justify-content:center;gap:6px}
+.av{width:36px;height:36px;border-radius:50%;background:var(--ac);color:var(--acink);font-weight:700;display:flex;align-items:center;justify-content:center;text-decoration:none;flex:none}
+.app.sbc .side{width:72px;padding:16px 8px;align-items:stretch}.app.sbc .side .t,.app.sbc .brand span{display:none}.app.sbc .brand{justify-content:center;padding:4px 0 12px}.app.sbc .side nav a{justify-content:center;padding:12px 0;border-left-width:0}.app.sbc .side nav a.on{box-shadow:inset 3px 0 var(--ac)}
+.app.sbc .sq{flex-direction:column}.app.sbc .sq .sb{justify-content:center}.app.sbc .gs{padding:10px 0}.app.sbc .foot .row{flex-direction:column;align-items:center}
+.hm{display:flex;flex-direction:column;gap:16px}.hm .row{display:grid;gap:16px}.r4{grid-template-columns:repeat(4,minmax(0,1fr))}.r21{grid-template-columns:minmax(0,2fr) minmax(0,1.15fr)}
+@media(max-width:1100px){.r4{grid-template-columns:repeat(2,minmax(0,1fr))}.r21{grid-template-columns:1fr}}@media(max-width:600px){.r4{grid-template-columns:1fr}}
+.hh{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.hh h1{margin:0 auto 0 0;font-size:22px}.ha{display:flex;gap:8px;flex-wrap:wrap}
+.hc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0}.hc h3{margin:0 0 12px;font-size:14px;font-weight:600}
+.kt{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin-bottom:6px}.kn{font-size:32px;font-weight:700;line-height:1.1}.kn2{font-size:26px;font-weight:700;line-height:1.2}.kr{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.sm{font-size:12px}.up{text-transform:uppercase;letter-spacing:.05em;margin-top:10px}
+.bd{margin-left:auto;font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;border:1px solid}.bd.ok{color:var(--ok);border-color:var(--ok)}.bd.warn{color:var(--warn);border-color:var(--warn)}.bd.bad{color:var(--bad);border-color:var(--bad)}
+.pb{display:flex;height:8px;border-radius:999px;overflow:hidden;background:color-mix(in srgb,var(--ink) 10%,transparent);margin:10px 0 6px}.pb i{display:block;height:100%}
+.at{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}.at:first-of-type{border-top:0}.atx{flex:1;min-width:0}.ai{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;background:color-mix(in srgb,var(--mut) 20%,transparent);color:var(--mut)}.ai.bad{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}.ai.warn{background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn)}
+.tg{font-weight:700;font-size:11px;letter-spacing:.05em;color:var(--mut)}.tg.bad{color:var(--bad)}.tg.warn{color:var(--warn)}
+button.dk{background:#2b2f36;border-color:#2b2f36;color:#fff;font-size:12px;font-weight:600;letter-spacing:.03em;white-space:nowrap}
+.cn{display:flex;gap:26px;margin:8px 0;flex-wrap:wrap}.cn div{display:flex;flex-direction:column;font-size:12px}.cn b{font-size:24px;line-height:1.2}.al{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}.sq2{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px}
+.hl{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}.hl h3{margin:0 auto 0 0}.hg{display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px}@media(max-width:800px){.hg{grid-template-columns:1fr}}.hs3{display:flex;flex-direction:column;gap:14px;border-right:1px solid var(--line);padding-right:16px}
+.hs{width:100%;height:auto}.hs .gl{stroke:var(--line)}.hs .gt{fill:var(--mut);font-size:11px}.hs .ln{stroke:var(--ok);stroke-width:2}.hs .tl{stroke:#9aa3ad;stroke-width:1.5;stroke-dasharray:4 3}.hs .ar{fill:color-mix(in srgb,var(--ok) 14%,transparent)}.hs .gp{fill:color-mix(in srgb,var(--mut) 14%,transparent)}
+.dh{margin:12px 0 8px}.dh span{background:color-mix(in srgb,var(--ink) 7%,transparent);font-size:11px;font-weight:700;letter-spacing:.05em;border-radius:999px;padding:3px 10px;color:var(--mut)}
+.ev{display:flex;gap:10px;margin-bottom:10px}.ei{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;font-size:13px;margin-top:6px}.ei.add{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}.ei.edit{background:color-mix(in srgb,#2563eb 18%,transparent);color:#2563eb}.ei.del{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.eb{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 12px}.et{display:flex;justify-content:space-between;gap:10px;font-size:14px}.et time{color:var(--mut);font-size:12px;white-space:nowrap}.nb{font-size:11px;border-radius:5px;padding:1px 7px;background:color-mix(in srgb,#2563eb 14%,transparent);color:#2563eb}
+.dr{display:flex;gap:14px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:13px;align-items:baseline}.dr>.mut{min-width:96px}.cp{display:inline-block;border-radius:5px;padding:1px 8px;margin:2px 4px 2px 0;font-size:12px;font-weight:600}.cp.ad{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}.cp.ad2{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}.cp.rm{background:color-mix(in srgb,var(--bad) 13%,transparent);color:var(--bad);text-decoration:line-through}
+#qo{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,17,20,.45);z-index:50;display:flex;justify-content:center;align-items:flex-start;padding-top:12vh}
+.qp{width:min(660px,94vw);background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}.qh{display:flex;gap:6px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.qh .tab{border:0;background:transparent;padding:6px 10px;border-radius:8px;color:var(--mut)}.qh .tab.on{background:color-mix(in srgb,var(--ac) 20%,transparent);color:var(--ink);font-weight:600}.qh input{flex:1;border:0;outline:0;background:transparent;font-size:16px;padding:6px;min-width:0}
+.qb{padding:12px 16px;max-height:52vh;overflow:auto;font-size:14px}.qb ul{margin:6px 0 0 18px;padding:0}.qa{margin-bottom:10px}.sug{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.sug button{border-radius:999px;font-size:13px;padding:5px 12px}
+.qr{display:flex;justify-content:space-between;gap:12px;padding:8px 10px;border-radius:8px;cursor:pointer}.qr:hover{background:color-mix(in srgb,var(--ac) 14%,transparent)}.qf{padding:8px 16px;font-size:12px;color:var(--mut);border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.r3{grid-template-columns:repeat(3,minmax(0,1fr))}.r2{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:1000px){.r3,.r2{grid-template-columns:1fr}}
+.sb2{display:flex;align-items:center;gap:10px;border-radius:12px;padding:14px 18px;color:#fff;font-size:17px;font-weight:600}.sb2 .gi{font-weight:800;font-size:20px}.sb2.ok{background:var(--ok)}.sb2.warn{background:var(--warn)}.sb2.bad{background:var(--bad)}.sb2.off{background:#3a3f47}
+button.cc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;text-align:left}button.cc b{font-size:30px;line-height:1.1}button.cc span{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}button.cc.on{outline:2px solid var(--ac)}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;border:1px solid;white-space:nowrap}.pill.ok{color:var(--ok);border-color:var(--ok)}.pill.warn{color:var(--warn);border-color:var(--warn)}.pill.bad{color:var(--bad);border-color:var(--bad)}.pill.off{color:var(--mut);border-color:var(--line)}
 </style></head><body><div id="root"></div><dialog id="dlg"></dialog>
 <script>
 const $ = s => document.querySelector(s);
@@ -94,6 +126,8 @@ const fsize = b => !b ? '—' : b > 1e9 ? (b / 1e9).toFixed(2) + ' GB' : b > 1e6
 const kind = m => m.kind || (m.type === 'image' && /\.gif$/i.test(m.file) ? 'gif' : m.type);
 const KN = { video: 'Vídeo', image: 'Imagem', gif: 'GIF' };
 const media = id => S.media.find(m => m.id === id);
+const lyOf = id => id ? (S.layouts || []).find(l => l.id === id) : null;
+const usesPl = (s, pid) => { const l = lyOf(s.layoutId); return l ? [l.h, l.v].some(g => g.zones.some(z => z.playlistId === pid)) : s.playlistId === pid; };
 const plOf = id => S.playlists.find(p => p.id === id);
 const itemSec = i => i.kind && i.kind !== 'media' ? i.seconds : (m => !m ? 0 : m.type === 'video' ? (m.duration || 0) : i.seconds)(media(i.mediaId));
 const plDur = p => p.items.reduce((a, i) => a + itemSec(i), 0);
@@ -118,6 +152,9 @@ const ROT = [[0, '0° (normal)'], [90, '90° horário'], [180, '180° (de cabeç
 const FIT = [['contain', 'Ajustar sem cortar'], ['cover', 'Preencher cortando'], ['fill', 'Esticar']];
 const rotOpts = c => ROT.map(([v, n]) => `<option value="${v}" ${(+c || 0) === v ? 'selected' : ''}>${n}</option>`).join('');
 const ICON = {
+  inicio: '<svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10"/></svg>',
+  busca: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>',
+  sair: '<svg viewBox="0 0 24 24"><path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/></svg>',
   telas: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
   arquivos: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-8 8"/></svg>',
   listas: '<svg viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>',
@@ -146,27 +183,30 @@ function showLogin() {
 }
 async function boot() {
   await load();
-  $('#root').innerHTML = `<div class="app"><aside class="side"><div class="brand"><img src="/logo.png" alt=""><span>Guará Play</span></div><a class="gs" id="gs" href="#/status"></a>
-  <nav>${[['telas', 'Telas'], ['arquivos', 'Arquivos'], ['listas', 'Listas de Reprodução'], ['zonas', 'Zonas'], ['relatorios', 'Relatórios'], ['status', 'Status'], ['conta', 'Minha conta']].map(([k, n]) => `<a href="#/${k}" data-r="${k}">${ICON[k]}${n}</a>`).join('')}</nav>
-  <div class="foot"><button id="tm"></button><button onclick="token='';localStorage.t='';showLogin()">Sair</button></div></aside><main id="page"></main></div>`;
-  const tm = $('#tm'), lbl = () => tm.textContent = document.documentElement.dataset.theme === 'dark' ? 'Modo claro' : 'Modo escuro';
+  const ini = ((S.account && S.account.name) || 'A')[0].toUpperCase();
+  $('#root').innerHTML = `<div class="app ${localStorage.sbc === '1' ? 'sbc' : ''}" id="app"><aside class="side"><div class="brand"><img src="/logo.png" alt=""><span>Guará Play</span></div><a class="gs" id="gs" href="#/status"></a>
+  <div class="sq"><button class="sb" onclick="qOpen('buscar')" title="Buscar ( / )">${ICON.busca}<span class="t">Buscar</span></button><button class="sa" onclick="qOpen('assistente')" title="Assistente ( ? )">✦</button></div>
+  <nav>${[['inicio', 'Início'], ['telas', 'Telas'], ['arquivos', 'Arquivos'], ['listas', 'Listas de Reprodução'], ['zonas', 'Zonas'], ['relatorios', 'Relatórios'], ['status', 'Status'], ['conta', 'Minha conta']].map(([k, n]) => `<a href="#/${k}" data-r="${k}" title="${n}">${ICON[k]}<span class="t">${n}</span></a>`).join('')}</nav>
+  <div class="foot"><div class="row"><button id="tm"></button><button id="cl" title="Recolher ou expandir o menu">⇤</button></div><div class="row"><a class="av" id="av" href="#/conta" title="Minha conta">${ini}</a><button onclick="token='';localStorage.t='';showLogin()" title="Sair">${ICON.sair}<span class="t">Sair</span></button></div></div></aside><main id="page"></main></div>`;
+  const tm = $('#tm'), lbl = () => { const dk = document.documentElement.dataset.theme === 'dark'; tm.textContent = dk ? '☀' : '☾'; tm.title = dk ? 'Modo claro' : 'Modo escuro'; };
   tm.onclick = () => { const d = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = localStorage.theme = d; lbl(); }; lbl();
+  $('#cl').onclick = () => { const a = $('#app'); a.classList.toggle('sbc'); localStorage.sbc = a.classList.contains('sbc') ? '1' : ''; };
   route(); fixDur();
 }
 function sideStatus() {
   const g = $('#gs'); if (!g) return; const c = { ok: 0, warn: 0, bad: 0, off: 0 }; S.screens.forEach(s => c[stOf(s)]++);
   const [cl, t] = !S.screens.length ? ['off', 'Sem telas'] : c.bad ? ['bad', `${c.bad} sem comunicação`] : c.warn ? ['warn', 'Em verificação'] : ['ok', 'Todas funcionando'];
-  g.className = 'gs ' + cl; g.textContent = t;
+  g.className = 'gs ' + cl; g.title = t; g.innerHTML = `<span class="gi">${{ ok: '✓', warn: '!', bad: '✕', off: '–' }[cl]}</span><span class="t">${t}</span>`;
 }
 
 /* ---------- tabelas ---------- */
 const V = {
   screens: { noun: 'telas', bar: stOf, noun1: 'tela',
     sorts: { created: ['Data de vínculo', (a, b) => (b.created || 0) - (a.created || 0)], name: ['Nome (A–Z)', (a, b) => a.name.localeCompare(b.name)], status: ['Status (problemas primeiro)', (a, b) => RANK[stOf(b)] - RANK[stOf(a)]] },
-    rows: () => S.screens, text: s => s.name + ' ' + (plOf(s.playlistId)?.name || '') + ' ' + tagNames(s),
+    rows: () => S.screens, text: s => s.name + ' ' + (plOf(s.playlistId)?.name || '') + ' ' + (lyOf(s.layoutId)?.name || '') + ' ' + tagNames(s),
     cols: [{ h: 'Nome', td: s => `<button class="chip" onclick="editScreen('${s.id}')">${esc(s.name)}</button>` },
       { h: 'Etiquetas', td: s => tagChips(s.tags) },
-      { h: 'Lista de reprodução', td: s => plOf(s.playlistId) ? tag(s.playlistId, plOf(s.playlistId).name) : '<span class="mut">—</span>' },
+      { h: 'Lista de reprodução', td: s => lyOf(s.layoutId) ? '<b>Zonas:</b> ' + esc(lyOf(s.layoutId).name) : plOf(s.playlistId) ? tag(s.playlistId, plOf(s.playlistId).name) : '<span class="mut">—</span>' },
       { h: 'Aparelho', td: s => s.platform || '<span class="mut">—</span>' }, { h: 'Rotação', td: s => (s.rotation || 0) + '°' },
       { h: 'Última conexão', td: s => ago(s.seen) }, { h: 'Horário', td: s => schedTxt(s) },
       { h: 'Captura de tela', td: s => `<button onclick="capture('${s.id}')" aria-label="Captura de tela de ${esc(s.name)}"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linejoin:round;display:block"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>` }] },
@@ -182,7 +222,7 @@ const V = {
     cols: [{ h: 'Nome', td: p => `<a class="chip" style="color:inherit;text-decoration:none" href="#/listas/${p.id}">${esc(p.name)}</a>` },
       { h: 'Prévia', td: p => strip(p) },
       { h: 'Etiquetas', td: p => tagChips(p.tags) },
-      { h: 'Telas que veiculam esta lista', td: p => S.screens.filter(s => s.playlistId === p.id).map(s => tag(s.id, s.name)).join('') || '<span class="mut">Nenhuma</span>' },
+      { h: 'Telas que veiculam esta lista', td: p => S.screens.filter(s => usesPl(s, p.id)).map(s => tag(s.id, s.name)).join('') || '<span class="mut">Nenhuma</span>' },
       { h: 'Tempo de duração', td: p => `<span class="chip dur">${fmt(plDur(p))}</span>` }] },
 };
 function listPage(key, title, btn, extra = '') {
@@ -217,7 +257,7 @@ const selPage = (k, on) => { T[k].cur.forEach(id => on ? T[k].sel.add(id) : T[k]
 const PATHS = { screens: 'screens/', files: 'media/', lists: 'playlists/' };
 const bulkDel = guard(async k => { if (!confirm(`Excluir ${T[k].sel.size} item(ns)? Não dá para desfazer.`)) return;
   for (const id of T[k].sel) await api(PATHS[k] + id, { method: 'DELETE' }); T[k].sel.clear(); await load(); renderTbl(k); sideStatus(); });
-const bulkList = guard(async (k, v) => { if (v === '__') return; for (const id of T[k].sel) await send('screens/' + id, 'PATCH', { playlistId: v }); T[k].sel.clear(); await load(); renderTbl(k); });
+const bulkList = guard(async (k, v) => { if (v === '__') return; for (const id of T[k].sel) await send('screens/' + id, 'PATCH', { playlistId: v, layoutId: '' }); T[k].sel.clear(); await load(); renderTbl(k); });
 
 /* ---------- Etiquetas / pastas ---------- */
 function renderTagbar(key) {
@@ -400,26 +440,151 @@ const wSave = guard(async () => {
 });
 
 /* ---------- Status ---------- */
-function pStatus() {
-  const c = { ok: 0, warn: 0, bad: 0, off: 0 }; S.screens.forEach(s => c[stOf(s)]++);
-  const [cl, t] = !S.screens.length ? ['off', 'Nenhuma tela vinculada'] : c.bad ? ['bad', `${c.bad} tela(s) sem comunicação`] : c.warn ? ['warn', 'Algumas telas em verificação'] : ['ok', 'Todas funcionando corretamente'];
-  const icon = { ok: '✓ Online', warn: '▲ Em verificação', bad: '✕ Sem comunicação', off: '⋯ Fora do horário' };
-  $('#page').innerHTML = `<div style="max-width:760px;margin:0 auto"><div class="big" style="background:var(--${cl})">${t}</div><h1 style="font-size:22px">Status das telas</h1>
-  <div class="card" style="padding:0">${[...S.screens].sort((a, b) => RANK[stOf(b)] - RANK[stOf(a)] || a.name.localeCompare(b.name)).map(s => `<div class="st"><span>${esc(s.name)}</span><span class="${stOf(s)}">${icon[stOf(s)]} <span class="mut" style="font-size:12px">· ${ago(s.seen)}</span></span></div>`).join('') || '<div class="st mut">Vincule uma tela para acompanhar o status.</div>'}</div>
-  <div class="lg" style="justify-content:center">${Object.entries(ST).map(([k, n]) => `<span><i style="background:var(--${k})"></i>${n}</span>`).join('')}</div></div>`;
+function pStatus() { statusDraw(); statusLoad(); }
+let SR = { hrs: 24, f: '', slots: [], slot: 300000, hnow: 0 };
+async function statusLoad() {
+  try { const h = await api('history?hours=' + SR.hrs); SR.slots = h.slots; SR.slot = h.slot; SR.hnow = h.now; } catch (e) { if (e.message === 'login') return; }
+  if (location.hash.includes('status') && $('#sp')) statusDraw();
+}
+const PILL = { ok: ['✓ Online', 'ok'], warn: ['▲ Em verificação', 'warn'], bad: ['✕ Sem comunicação', 'bad'], off: ['◌ Fora do horário', 'off'] };
+function statusDraw() {
+  const sc = S.screens, c = { ok: 0, warn: 0, bad: 0, off: 0 }; sc.forEach(s => c[stOf(s)]++);
+  const [cl, t] = !sc.length ? ['off', 'Nenhuma tela vinculada'] : c.bad ? ['bad', `${c.bad} ${c.bad > 1 ? 'telas sem comunicação' : 'tela sem comunicação'}`] : c.warn ? ['warn', 'Algumas telas em verificação'] : ['ok', 'Todas as telas funcionando corretamente'];
+  const sl = SR.slots, avg = sl.length ? sl.reduce((a, h) => a + h.on, 0) / sl.length : null, mn = sl.length ? sl.reduce((m, h) => h.on < m.on ? h : m, sl[0]) : null;
+  const E = sl.reduce((a, h) => a + h.e, 0), O = sl.reduce((a, h) => a + (h.e ? h.o : 0), 0), disp = E ? O / E * 100 : null;
+  const fd = x => new Date(x).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+  const rows = [...sc].filter(s => !SR.f || stOf(s) === SR.f).sort((a, b) => RANK[stOf(b)] - RANK[stOf(a)] || a.name.localeCompare(b.name));
+  const cnt = (k, n, col) => `<button class="cc ${SR.f === k ? 'on' : ''}" onclick="SR.f=SR.f==='${k}'?'':'${k}';statusDraw()"><b style="color:var(--${col})">${c[k]}</b><span>${n}</span></button>`;
+  $('#page').innerHTML = `<div class="hm" id="sp"><div class="hh"><h1>Status das telas</h1><div class="ha"><button class="${SR.hrs === 24 ? 'p' : ''}" onclick="SR.hrs=24;pStatus()">24 horas</button><button class="${SR.hrs === 168 ? 'p' : ''}" onclick="SR.hrs=168;pStatus()">7 dias</button><button onclick="load().then(pStatus)">↻ Atualizar</button></div></div>
+  <div class="sb2 ${cl}"><span class="gi">${{ ok: '✓', warn: '!', bad: '✕', off: '–' }[cl]}</span>${t}</div>
+  <div class="row r4">${cnt('ok', 'Online', 'ok')}${cnt('warn', 'Em verificação', 'warn')}${cnt('bad', 'Sem comunicação', 'bad')}${cnt('off', 'Fora do horário', 'off')}</div>
+  <div class="hc"><div class="hl"><h3>📈 Histórico <span class="mut sm">${SR.hrs === 24 ? 'Últimas 24 horas' : 'Últimos 7 dias'}</span></h3></div>
+    <div class="hg"><div class="hs3"><div><div class="kt">Média online</div><div class="kn2">${avg == null ? '—' : avg.toFixed(1).replace('.', ',').replace(',0', '')} <span class="mut sm">/ ${sc.length}</span></div></div><div><div class="kt">Menor número online</div><div class="kn2">${mn ? mn.on : '—'}</div><div class="mut sm">${mn ? fd(mn.t) : ''}</div></div><div><div class="kt">Disponibilidade</div><div class="kn2">${disp == null ? '—' : disp.toFixed(1).replace('.', ',') + '%'}</div><div class="mut sm">em horário de funcionamento</div></div></div>
+    <div>${sl.length ? histSvg(sl, SR.hnow || Date.now(), sc.length, SR.hrs) : '<p class="mut">O histórico começa a ser gravado assim que o servidor estiver ligado (uma amostra por minuto).</p>'}<div class="lg"><span><i style="background:var(--ok)"></i>Online</span><span><i style="background:#9aa3ad"></i>Total</span><span><i style="background:#e5e7eb"></i>Sem dados</span></div></div></div></div>
+  <div class="hc"><div class="hl"><h3>🖥 Telas ${SR.f ? `<span class="mut sm">· filtrando: ${PILL[SR.f][0]}</span>` : ''}</h3>${SR.f ? '<button onclick="SR.f=\'\';statusDraw()">Limpar filtro</button>' : ''}</div>
+    ${rows.length ? `<div class="tw"><table><thead><tr><th>Tela</th><th>Status</th><th>Último contato</th><th>Conteúdo</th><th>Plataforma</th></tr></thead><tbody>${rows.map(s => { const k = stOf(s), l = lyOf(s.layoutId), p = plOf(s.playlistId);
+      return `<tr class="b-${k}"><td><button class="chip" onclick="editScreen('${s.id}')">${esc(s.name)}</button></td><td><span class="pill ${PILL[k][1]}">${PILL[k][0]}</span></td><td>${ago(s.seen)}</td><td>${l ? '<b>Zonas:</b> ' + esc(l.name) : p ? esc(p.name) : '<span class="mut">—</span>'}</td><td>${esc(s.platform || '—')}${(s.rotation || 0) % 180 ? ' · vertical' : ''}</td></tr>`; }).join('')}</tbody></table></div>` : `<p class="mut">${sc.length ? 'Nenhuma tela neste filtro.' : 'Vincule uma tela para acompanhar o status.'}</p>`}
+    <div class="lg">${Object.entries(ST).map(([k, n]) => `<span><i style="background:var(--${k})"></i>${n}</span>`).join('')}</div></div></div>`;
 }
 
 /* ---------- Minha conta ---------- */
+let CT = 'est';
 function pConta() {
-  const L = S.playlists, by = [...L].sort((a, b) => b.items.length - a.items.length), ks = k => S.media.filter(m => kind(m) === k).length;
-  const sc = S.screens, rows = (g, a) => a.map(([n, v]) => `<div class="r"><span class="mut">${n}</span><b>${v}</b></div>`).join('');
-  const lf = p => p ? `${esc(p.name)} [${p.items.length}]` : '—';
-  $('#page').innerHTML = `<div class="card"><div class="ph"><h1>Minha conta · Estatísticas</h1></div><div class="stats">
-  <div class="card" style="border-top-color:var(--ok)"><h3>Listas de reprodução</h3>${rows(0, [['Listas', L.length], ['Lista com mais itens', lf(by[0])], ['Lista com menos itens', lf(by[by.length - 1])]])}</div>
-  <div class="card"><h3>Arquivos</h3>${rows(0, [['Total de arquivos', S.media.length], ['Vídeos', ks('video')], ['Imagens', ks('image')], ['GIFs animados', ks('gif')]])}</div>
-  <div class="card" style="border-top-color:#8a4fff"><h3>Telas</h3>${rows(0, [['Telas', sc.length], ['Com Windows', sc.filter(s => s.platform === 'Windows').length], ['Com Android', sc.filter(s => s.platform === 'Android').length],
-    ['Horizontais', sc.filter(s => !((s.rotation || 0) % 180)).length], ['Verticais', sc.filter(s => (s.rotation || 0) % 180).length]])}</div></div></div>`;
+  const L = S.playlists, sc = S.screens, ks = k => S.media.filter(m => kind(m) === k).length, by = [...L].sort((a, b) => b.items.length - a.items.length), used = S.media.reduce((a, m) => a + (m.size || 0), 0);
+  const lf = p => p ? `${esc(p.name)} [${p.items.length}]` : '—', rw = a => a.map(([n, v]) => `<div class="al"><span class="mut">${n}</span><b>${v}</b></div>`).join('');
+  const est = `<div class="row r4"><div class="hc"><div class="kt">🖥 Telas</div><div class="kn">${sc.length}</div></div><div class="hc"><div class="kt">🖼 Arquivos</div><div class="kn">${S.media.length}</div></div><div class="hc"><div class="kt">🗄 Espaço utilizado</div><div class="kn">${used ? fsize(used) : '0 KB'}</div></div><div class="hc"><div class="kt">☰ Listas</div><div class="kn">${L.length}</div></div></div>
+  <div class="row r3"><div class="hc"><h3>Listas de reprodução</h3>${rw([['Listas', L.length], ['Lista com mais itens', lf(by[0])], ['Lista com menos itens', lf(by[by.length - 1])], ['Layouts de zonas', (S.layouts || []).length]])}</div>
+    <div class="hc"><h3>Arquivos</h3>${rw([['Total de arquivos', S.media.length], ['Vídeos', ks('video')], ['Imagens', ks('image')], ['GIFs animados', ks('gif')]])}</div>
+    <div class="hc"><h3>Telas</h3>${rw([['Telas', sc.length], ['Com Windows', sc.filter(s => s.platform === 'Windows').length], ['Com Android', sc.filter(s => s.platform === 'Android').length], ['Horizontais', sc.filter(s => !((s.rotation || 0) % 180)).length], ['Verticais', sc.filter(s => (s.rotation || 0) % 180).length]])}</div></div>`;
+  const perfil = `<div class="row r2"><div class="hc"><h3>Perfil</h3><label class="f">Seu nome (aparece na saudação do Início e no registro de alterações)<input id="an" value="${esc((S.account && S.account.name) || '')}" maxlength="60"></label><div class="tb"><button class="p" onclick="saveName()">Salvar nome</button><span class="mut" id="anok"></span></div></div>
+    <div class="hc"><h3>Servidor</h3>${rw([['Endereço do painel', esc(location.origin)], ['Endereço para o app e o player', esc(location.origin)], ['Player no navegador', esc(location.origin) + '/player.html']])}<p class="mut sm" style="margin-bottom:0">Use o endereço acima ao configurar o app nas TVs.</p></div></div>`;
+  $('#page').innerHTML = `<div class="hm"><div class="hh"><h1>Minha conta</h1><div class="ha"><button class="${CT === 'est' ? 'p' : ''}" onclick="CT='est';pConta()">Estatísticas</button><button class="${CT === 'perfil' ? 'p' : ''}" onclick="CT='perfil';pConta()">Informações pessoais</button></div></div>${CT === 'perfil' ? perfil : est}</div>`;
 }
+
+/* ---------- Início (painel) ---------- */
+const saud = () => { const h = new Date().getHours(); return h < 5 ? 'Boa noite' : h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; };
+const hhmm = t => new Date(t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+const dkey = t => new Date(t).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+let HS = { slots: [], slot: 300000, hnow: 0, act: [], all: false };
+function histSvg(sl, now, tot, hrs = 24) {
+  const W = 820, H = 230, L = 34, R = 10, T = 12, B = 26, SL = HS.slot || 300000, t0 = now - hrs * 3600e3, X = t => L + (t - t0) / (now - t0) * (W - L - R);
+  const top = Math.max(tot, ...sl.map(h => h.on), 1) + 1, step = Math.max(1, Math.ceil(top / 6)), Y = v => T + (H - T - B) * (1 - v / top); let g = '';
+  for (let v = 0; v <= top; v += step) g += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" class="gl"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" class="gt">${v}</text>`;
+  for (let h = 0; h <= hrs; h += hrs <= 24 ? 3 : 24) { const t = t0 + h * 3600e3, d = new Date(t); g += `<text x="${X(t)}" y="${H - 6}" text-anchor="middle" class="gt">${hrs <= 24 ? d.getHours() + 'h' : String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0')}</text>`; }
+  const segs = []; let cur = []; sl.forEach((h, i) => { if (i && h.t - sl[i - 1].t > 2.5 * SL) { segs.push(cur); cur = []; } cur.push(h); }); if (cur.length) segs.push(cur);
+  const bot = Y(0); let gaps = '', area = '', line = '', tl = '', pos = X(t0);
+  segs.forEach(sg => { const a = X(Math.max(t0, sg[0].t)), b = X(Math.min(now, sg[sg.length - 1].t + SL)); if (a - pos > 4) gaps += `<rect x="${pos}" y="${T}" width="${a - pos}" height="${bot - T}" class="gp"/>`; pos = b;
+    const pts = sg.map(h => [X(Math.max(t0, h.t) + SL / 2), h]); if (pts.length === 1) { pts.unshift([a, pts[0][1]]); pts.push([b, pts[1][1]]); }
+    line += `<polyline fill="none" class="ln" points="${pts.map(([x, h]) => x + ',' + Y(h.on)).join(' ')}"/>`; tl += `<polyline fill="none" class="tl" points="${pts.map(([x, h]) => x + ',' + Y(h.tot)).join(' ')}"/>`;
+    area += `<polygon class="ar" points="${pts[0][0]},${bot} ${pts.map(([x, h]) => x + ',' + Y(h.on)).join(' ')} ${pts[pts.length - 1][0]},${bot}"/>`; });
+  if (W - R - pos > 4) gaps += `<rect x="${pos}" y="${T}" width="${W - R - pos}" height="${bot - T}" class="gp"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="hs" role="img" aria-label="Histórico de telas online nas últimas 24 horas">${gaps}${g}${area}${tl}${line}</svg>`;
+}
+async function pInicio() {
+  inicioDraw();
+  try { const [h, a] = await Promise.all([api('history?hours=24'), api('activity?limit=60')]); HS.slots = h.slots; HS.slot = h.slot; HS.hnow = h.now; HS.act = a; } catch (e) { if (e.message === 'login') return; }
+  if (/^#?\/?(inicio)?$/.test(location.hash) && $('#hm')) inicioDraw();
+}
+function inicioDraw() {
+  const sc = S.screens, tot = sc.length, c = { ok: 0, warn: 0, bad: 0, off: 0 }; sc.forEach(s => c[stOf(s)]++);
+  const pc = n => tot ? n / tot * 100 : 0, used = S.media.reduce((a, m) => a + (m.size || 0), 0), nome = S.account && S.account.name;
+  const inUse = S.playlists.filter(p => sc.some(s => usesPl(s, p.id))).length, vids = S.media.filter(m => kind(m) === 'video').length;
+  const badge = !tot ? '' : c.bad ? `<span class="bd bad">✕ ${c.bad} offline</span>` : c.warn ? `<span class="bd warn">⚠ ${c.warn} em alerta</span>` : '<span class="bd ok">✓ OK</span>';
+  const bar = `<div class="pb"><i style="width:${pc(c.ok)}%;background:var(--ok)"></i><i style="width:${pc(c.warn)}%;background:var(--warn)"></i><i style="width:${pc(c.bad)}%;background:var(--bad)"></i><i style="width:${pc(c.off)}%;background:var(--off)"></i></div>`;
+  const nm = a => { const n = a.map(s => esc(s.name)); return n.slice(0, 3).join(', ') + (n.length > 3 ? ' e mais ' + (n.length - 3) : ''); };
+  const bad = sc.filter(s => stOf(s) === 'bad'), warn = sc.filter(s => stOf(s) === 'warn'), none = sc.filter(s => !s.playlistId && !lyOf(s.layoutId)), vaz = S.playlists.filter(p => !p.items.length), att = [];
+  if (bad.length) att.push(['bad', 'CRÍTICO', `${bad.length} ${bad.length > 1 ? 'telas sem comunicação' : 'tela sem comunicação'}`, nm(bad), 'VER STATUS', '#/status']);
+  if (warn.length) att.push(['warn', 'ATENÇÃO', `${warn.length} ${warn.length > 1 ? 'telas em alerta' : 'tela em alerta'}`, nm(warn), 'VER STATUS', '#/status']);
+  if (none.length) att.push(['info', 'INFO', `${none.length} ${none.length > 1 ? 'telas sem conteúdo' : 'tela sem conteúdo'}`, nm(none), 'VER TELAS', '#/telas']);
+  if (vaz.length) att.push(['info', 'INFO', `${vaz.length} ${vaz.length > 1 ? 'listas vazias' : 'lista vazia'}`, vaz.slice(0, 3).map(p => esc(p.name)).join(', '), 'VER LISTAS', '#/listas']);
+  const sl = HS.slots, avg = sl.length ? sl.reduce((a, h) => a + h.on, 0) / sl.length : null, mn = sl.length ? sl.reduce((m, h) => h.on < m.on ? h : m, sl[0]) : null;
+  const E = sl.reduce((a, h) => a + h.e, 0), O = sl.reduce((a, h) => a + (h.e ? h.o : 0), 0), disp = E ? O / E * 100 : null;
+  const fd = t => new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+  const ents = HS.act.slice(0, HS.all ? 60 : 8), days = []; ents.forEach(a => { const k = dkey(a.t); let g = days.find(x => x.k === k); if (!g) days.push(g = { k, a: [] }); g.a.push(a); });
+  const GL = { add: '＋', edit: '✎', del: '🗑' };
+  const det = d => d.add || d.del ? `<div class="dr"><span class="mut">${esc(d.k)}</span><span>${(d.add || []).map(x => `<span class="cp ad">+ ${esc(x)}</span>`).join('')}${(d.del || []).map(x => `<span class="cp rm">${esc(x)}</span>`).join('')}</span></div>`
+    : `<div class="dr"><span class="mut">${esc(d.k)}</span><span>${d.from ? `<span class="cp rm">${esc(d.from)}</span> → ` : ''}<span class="cp ad2">${esc(d.to)}</span></span></div>`;
+  const by = [['video', 'Vídeos', '#2563eb'], ['image', 'Imagens', '#16a34a'], ['gif', 'GIFs', '#8b5cf6']].map(([k, n, col]) => { const a = S.media.filter(m => kind(m) === k); return { n, col, q: a.length, b: a.reduce((s, m) => s + (m.size || 0), 0) }; }).filter(x => x.q);
+  const tb = by.reduce((a, x) => a + x.b, 0) || 1;
+  $('#page').innerHTML = `<div class="hm" id="hm"><div class="hh"><h1>${saud()}${nome ? ', ' + esc(nome) : ''}!</h1><div class="ha"><button class="p" onclick="pairScreen()">🖥 Vincular tela</button><button class="p" onclick="location.hash='#/arquivos';setTimeout(()=>$('#fi')&&$('#fi').click(),150)">🖼 Adicionar arquivos</button><button class="p" onclick="location.hash='#/listas/nova'">☰ Criar lista</button></div></div>
+  <div class="row r4"><div class="hc"><div class="kt">🖥 Telas online agora</div><div class="kr"><span class="kn">${c.ok}</span><span class="mut"> de ${tot}</span>${badge}</div>${bar}<div class="mut sm">${tot ? Math.round(pc(c.ok)) + '% online' + (c.warn ? ` · ${c.warn} em alerta` : '') + (c.bad ? ` · ${c.bad} offline` : '') : 'Nenhuma tela vinculada'}</div></div>
+    <div class="hc"><div class="kt">🗄 Espaço utilizado</div><div class="kn">${fsize(used) === '—' ? '0 KB' : fsize(used)}</div></div>
+    <div class="hc"><div class="kt">🖼 Arquivos</div><div class="kn">${S.media.length}</div><div class="mut sm">${vids} ${vids === 1 ? 'vídeo' : 'vídeos'} · ${S.media.length - vids} ${S.media.length - vids === 1 ? 'imagem' : 'imagens'}</div></div>
+    <div class="hc"><div class="kt">☰ Listas de reprodução</div><div class="kn">${S.playlists.length}</div><div class="mut sm">${inUse} em exibição nas Telas</div></div></div>
+  <div class="row r21"><div class="hc"><h3>⚠ Requer atenção</h3>${att.length ? att.map(([cl, tg, t, n, b, h]) => `<div class="at"><span class="ai ${cl}">!</span><div class="atx"><small class="tg ${cl}">${tg}</small> <b>${t}</b><div class="mut sm">${n}</div></div><button class="dk" onclick="location.hash='${h}'">${b} ›</button></div>`).join('') : '<p class="mut">Tudo certo por aqui. Nada precisa da sua atenção.</p>'}</div>
+    <div class="hc"><h3>📶 Status das Telas</h3>${bar}<div class="cn"><div><b>${c.ok}</b><span class="ok">● Online</span></div><div><b>${c.warn}</b><span class="warn">▲ Em alerta</span></div><div><b>${c.bad}</b><span class="bad">✕ Offline</span></div>${c.off ? `<div><b>${c.off}</b><span class="mut">◌ Fora do horário</span></div>` : ''}</div>
+      ${!tot ? '<p class="mut sm">VINCULE UMA TELA PARA COMEÇAR</p>' : bad.length + warn.length ? `<div class="mut sm up">Em alerta agora</div>${[...bad, ...warn].map(s => `<div class="al"><span class="${stOf(s)}">●</span> ${esc(s.name)}<span class="mut">${ago(s.seen)}</span></div>`).join('')}` : '<div class="mut sm up">Todas as telas estão funcionando</div>'}</div></div>
+  <div class="hc"><div class="hl"><h3>📈 Histórico de status <span class="mut sm">Últimas 24 horas</span></h3><button class="dk" onclick="location.hash='#/status'">VER STATUS DAS TELAS ›</button></div>
+    <div class="hg"><div class="hs3"><div><div class="kt">Média online</div><div class="kn2">${avg == null ? '—' : avg.toFixed(1).replace('.', ',').replace(',0', '')} <span class="mut sm">/ ${tot}</span></div></div><div><div class="kt">Menor número online</div><div class="kn2">${mn ? mn.on : '—'}</div><div class="mut sm">${mn ? fd(mn.t) : ''}</div></div><div><div class="kt">Disponibilidade</div><div class="kn2">${disp == null ? '—' : disp.toFixed(1).replace('.', ',') + '%'}</div><div class="mut sm">em horário de funcionamento</div></div></div>
+    <div>${sl.length ? histSvg(sl, HS.hnow || Date.now(), tot) : '<p class="mut">O histórico começa a ser gravado assim que o servidor estiver ligado (uma amostra por minuto).</p>'}<div class="lg"><span><i style="background:var(--ok)"></i>Online</span><span><i style="background:#9aa3ad"></i>Total</span><span><i style="background:#e5e7eb"></i>Sem dados</span></div></div></div></div>
+  <div class="row r21"><div class="hc"><h3>🕘 Alterações recentes</h3>${days.length ? days.map(g => `<div class="dh"><span>${g.k}</span></div>${g.a.map(a => `<div class="ev"><span class="ei ${a.kind}">${GL[a.kind] || '✎'}</span><div class="eb"><div class="et"><span><b>${esc(a.who)}</b> ${a.verb} ${a.noun} : <b>${esc(a.name)}</b>.${a.d.length ? ` <span class="nb">${a.d.length} ${a.d.length > 1 ? 'alterações' : 'alteração'}</span>` : ''}</span><time>${hhmm(a.t)}</time></div>${a.d.map(det).join('')}</div></div>`).join('')}`).join('') + (HS.act.length > 8 ? `<button style="margin-top:10px" onclick="HS.all=!HS.all;inicioDraw()">${HS.all ? 'Ver menos' : 'Ver mais'}</button>` : '') : '<p class="mut">As alterações que você fizer no painel aparecem aqui.</p>'}</div>
+    <div class="hc"><h3>🗄 Armazenamento por tipo</h3>${by.length ? `<div class="pb">${by.map(x => `<i style="width:${x.b / tb * 100}%;background:${x.col}"></i>`).join('')}</div>${by.map(x => `<div class="al"><span><i class="sq2" style="background:${x.col}"></i>${x.n}<span class="mut"> ${x.q}</span></span><b>${fsize(x.b)}</b></div>`).join('')}` : '<p class="mut">Nenhum arquivo ainda.</p>'}</div></div></div>`;
+}
+
+/* ---------- busca e assistente ---------- */
+let Q = { mode: 'buscar', q: '', ans: '' };
+function qOpen(mode) { Q.mode = mode || 'buscar'; Q.q = ''; Q.ans = ''; let o = $('#qo'); if (!o) { o = document.createElement('div'); o.id = 'qo'; document.body.appendChild(o); o.onclick = e => { if (e.target === o) qClose(); }; } qDraw(); }
+const qClose = () => { const o = $('#qo'); if (o) o.remove(); };
+function qDraw() {
+  const o = $('#qo'); if (!o) return; const A = Q.mode === 'assistente';
+  o.innerHTML = `<div class="qp"><div class="qh"><button class="tab ${A ? '' : 'on'}" onclick="Q.mode='buscar';Q.ans='';qDraw()">🔍 Buscar</button><button class="tab ${A ? 'on' : ''}" onclick="Q.mode='assistente';Q.ans='';qDraw()">✦ Assistente</button>
+    <input id="qi" autocomplete="off" placeholder="${A ? 'Faça uma pergunta sobre a sua conta' : 'Buscar telas, arquivos, listas e layouts'}" value="${esc(Q.q)}" oninput="Q.q=this.value;qUpd()" onkeydown="if(event.key==='Enter')qEnter()"><button class="p" onclick="qEnter()">↑</button></div>
+    <div class="qb" id="qb"></div><div class="qf"><span>${A ? 'Assistente simples: responde perguntas comuns sobre telas, arquivos e listas. Não altera nada.' : 'Dica: aperte / para buscar e ? para o assistente.'}</span><span>Esc fechar</span></div></div>`;
+  qUpd(); setTimeout(() => { const i = $('#qi'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 20);
+}
+function qUpd() {
+  const b = $('#qb'); if (!b) return;
+  if (Q.mode === 'assistente') { b.innerHTML = (Q.ans ? `<div class="qa">${Q.ans}</div>` : '') + `<div class="sug">${['Quais telas estão offline?', 'Quais são os 5 maiores arquivos?', 'Faça um resumo da minha conta.'].map(t => `<button onclick="Q.q='${t}';qAsk()">${t}</button>`).join('')}</div>`; return; }
+  const q = Q.q.trim().toLowerCase(); if (q.length < 2) { b.innerHTML = '<p class="mut">Digite para buscar telas, arquivos, listas de reprodução e layouts de zonas.</p>'; return; }
+  const hit = (a, f) => a.filter(x => f(x).toLowerCase().includes(q)).slice(0, 6);
+  const G = [['🖥 Telas', hit(S.screens, s => s.name + ' ' + tagNames(s)).map(s => [`qGo('t','${s.id}')`, s.name, ST[stOf(s)]])], ['🖼 Arquivos', hit(S.media, m => m.name).map(m => [`qGo('f','${m.id}')`, m.name, KN[kind(m)] + ' · ' + fsize(m.size)])],
+    ['☰ Listas', hit(S.playlists, p => p.name).map(p => [`qGo('l','${p.id}')`, p.name, p.items.length + ' itens'])], ['▦ Zonas', hit(S.layouts || [], l => l.name).map(l => [`qGo('z','${l.id}')`, l.name, l.h.zones.length + ' zonas'])]].filter(g => g[1].length);
+  b.innerHTML = G.length ? G.map(([t, a]) => `<div class="mut sm up">${t}</div>${a.map(([f, n, s]) => `<div class="qr" onclick="${f}"><span>${esc(n)}</span><span class="mut sm">${esc(s)}</span></div>`).join('')}`).join('') : '<p class="mut">Nada encontrado.</p>';
+}
+function qGo(k, id) {
+  qClose(); const h = { t: '#/telas', f: '#/arquivos', l: '#/listas/' + id, z: '#/zonas/' + id }[k];
+  if (location.hash === h) route(); else location.hash = h; if (k === 't') setTimeout(() => editScreen(id), 200);
+}
+function qAsk() { Q.ans = qAnswer(Q.q); qDraw(); }
+function qEnter() { if (Q.mode === 'assistente') qAsk(); else { const r = $('#qb .qr'); if (r) r.click(); } }
+function qAnswer(t) {
+  t = t.toLowerCase(); const sc = S.screens, ul = a => '<ul>' + a.map(x => `<li>${x}</li>`).join('') + '</ul>';
+  if (/offline|fora do ar|sem comunic|caiu|problema|alerta/.test(t)) { const a = sc.filter(s => ['bad', 'warn'].includes(stOf(s))); return a.length ? `<b>${a.length} ${a.length > 1 ? 'telas com problema' : 'tela com problema'}:</b>` + ul(a.map(s => `${esc(s.name)} — ${ST[stOf(s)].toLowerCase()} (${ago(s.seen)})`)) : 'Nenhuma tela com problema agora. 👍'; }
+  if (/maior|maiores|pesad|espa[cç]o|tamanho/.test(t)) { const a = [...S.media].sort((x, y) => (y.size || 0) - (x.size || 0)).slice(0, 5); return a.length ? '<b>Os 5 maiores arquivos:</b>' + ul(a.map(m => `${esc(m.name)} — ${fsize(m.size)}`)) : 'Ainda não há arquivos.'; }
+  if (/resum|geral|vis[aã]o/.test(t)) { const c = { ok: 0, warn: 0, bad: 0, off: 0 }; sc.forEach(s => c[stOf(s)]++); return '<b>Resumo da conta:</b>' + ul([`${sc.length} telas (${c.ok} online, ${c.warn} em alerta, ${c.bad} offline)`, `${S.media.length} arquivos, ${fsize(S.media.reduce((a, m) => a + (m.size || 0), 0))} usados`, `${S.playlists.length} listas de reprodução`, `${(S.layouts || []).length} layouts de zonas`]); }
+  if (/lista/.test(t)) return S.playlists.length ? '<b>Listas de reprodução:</b>' + ul(S.playlists.map(p => `${esc(p.name)} — ${p.items.length} itens, ${sc.filter(s => usesPl(s, p.id)).length} tela(s)`)) : 'Você ainda não criou listas.';
+  if (/zona|layout/.test(t)) return (S.layouts || []).length ? '<b>Layouts de zonas:</b>' + ul(S.layouts.map(l => `${esc(l.name)} — ${l.h.zones.length} zonas (horizontal), ${l.v.zones.length} (vertical)`)) : 'Você ainda não criou layouts de zonas.';
+  if (/tela/.test(t)) return sc.length ? '<b>Telas:</b>' + ul(sc.map(s => `${esc(s.name)} — ${ST[stOf(s)].toLowerCase()}`)) : 'Nenhuma tela vinculada ainda.';
+  return 'Ainda não sei responder isso. Tente: <i>Quais telas estão offline?</i>, <i>Quais são os 5 maiores arquivos?</i> ou <i>Faça um resumo da minha conta.</i>';
+}
+addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#qo')) return qClose();
+  const t = e.target, typing = t && /INPUT|TEXTAREA|SELECT/.test(t.tagName) || (t && t.isContentEditable);
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); return qOpen('buscar'); }
+  if (typing || dlg.open || !$('#page') || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === '/') { e.preventDefault(); qOpen('buscar'); } else if (e.key === '?') { e.preventDefault(); qOpen('assistente'); }
+});
+async function saveName() { const v = $('#an').value.trim(); try { await send('account', 'POST', { name: v }); await load(); $('#anok').textContent = 'Salvo ✓'; const a = $('#av'); if (a) a.textContent = (v || 'A')[0].toUpperCase(); } catch (e) { if (e.message !== 'login') alert(e.message); } }
 
 /* ---------- Relatórios ---------- */
 //#pure-start
@@ -546,8 +711,8 @@ function zEditor(id) {
   const l = (S.layouts || []).find(x => x.id === id); if (!l) { location.hash = '#/zonas'; return; }
   ZE = JSON.parse(JSON.stringify(l)); zDraw();
 }
-const zHtml = (o, i) => { const g = ZE[o], z = g.zones[i], c = ZCOL[i % ZCOL.length];
-  return `<div class="zn" data-o="${o}" data-i="${i}" style="${zPct(z, g)};border-color:${c};background:${c}55"><b>Zona ${i + 1}</b><span class="lb">${Math.round(z.w / g.cols * 100)}% × ${Math.round(z.h / g.rows * 100)}%</span><span class="x" data-act="del">×</span><span class="rs" data-act="rs"></span></div>`; };
+const zHtml = (o, i) => { const g = ZE[o], z = g.zones[i], c = ZCOL[i % ZCOL.length], pl = S.playlists.find(x => x.id === z.playlistId);
+  return `<div class="zn" data-o="${o}" data-i="${i}" style="${zPct(z, g)};border-color:${c};background:${c}55"><b>Zona ${i + 1}</b><span class="lb2 ${pl ? '' : 'no'}">${pl ? esc(pl.name) : 'sem lista'}</span><span class="lb">${Math.round(z.w / g.cols * 100)}% × ${Math.round(z.h / g.rows * 100)}%</span><span class="x" data-act="del">×</span><span class="rs" data-act="rs"></span></div>`; };
 function zDraw() {
   const pane = o => { const g = ZE[o], H = o === 'h';
     return `<div class="zp"><div class="tb" style="margin-bottom:8px"><b>${H ? 'Horizontal' : 'Vertical'}</b>
@@ -561,10 +726,10 @@ function zDraw() {
         <button class="d" onclick="zDel('${o}',${i})">Remover</button></div>`).join('') || '<p class="mut">Sem zonas: esta orientação ficará preta. Use um modelo ou "+ Zona".</p>'}</div></div>`; };
   $('#page').innerHTML = `<div class="card"><div class="ph"><h1>Editor de zonas</h1><button onclick="location.hash='#/zonas'">Voltar</button><button class="p" onclick="zSave()">Salvar</button></div>
   <label class="f">Nome do layout<input id="zn" value="${esc(ZE.name)}" onchange="ZE.name=this.value"></label>
-  <p class="mut" style="font-size:13px">Arraste para mover e puxe o canto para redimensionar. Cada orientação tem o seu desenho: a tela usa o horizontal ou o vertical conforme a rotação dela. A lista de cada zona toca de forma independente; só a maior zona toca o som dos vídeos.</p>
+  <p class="mut" style="font-size:13px">Arraste para mover e puxe o canto para redimensionar. Cada orientação tem o seu desenho: a tela usa o horizontal quando está deitada e o vertical quando está em pé (já considerando a rotação configurada na tela). A lista de cada zona toca de forma independente; só a maior zona toca o som dos vídeos.</p>
   <div class="zgrid">${pane('h')}${pane('v')}</div></div>`;
 }
-const zSet = (o, i, k, v) => { ZE[o].zones[i][k] = k === 'rot' ? +v : v; };
+const zSet = (o, i, k, v) => { ZE[o].zones[i][k] = k === 'rot' ? +v : v; if (k === 'playlistId') zDraw(); };
 function zAdd(o) { const g = ZE[o]; if (g.zones.length >= 20) return toast('Máximo de 20 zonas'); const w = Math.max(1, Math.round(g.cols / 3)), h = Math.max(1, Math.round(g.rows / 3)), n = g.zones.length % 4;
   g.zones.push({ x: Math.min(g.cols - w, Math.floor((g.cols - w) / 2) + n), y: Math.min(g.rows - h, Math.floor((g.rows - h) / 2) + n), w, h, playlistId: null, rot: 0, fit: '' }); zDraw(); }
 const zDel = (o, i) => { ZE[o].zones.splice(i, 1); zDraw(); };
@@ -573,6 +738,7 @@ function zGrid(o, k, v) { const g = ZE[o], n = Math.min(48, Math.max(4, parseInt
 function zDown(e) {
   const zn = e.target.closest('.zn'); if (!zn) return; const o = zn.dataset.o, i = +zn.dataset.i, act = e.target.dataset.act;
   if (act === 'del') return zDel(o, i);
+  document.querySelectorAll(`.zc[data-o="${o}"] .zn`).forEach(e => { e.style.zIndex = e === zn ? 10 : ''; }); // a zona clicada vem para a frente (alcança o canto mesmo com zonas sobrepostas)
   const g = ZE[o], r = zn.parentElement.getBoundingClientRect();
   ZD = { o, i, mode: act === 'rs' ? 'rs' : 'mv', x: e.clientX, y: e.clientY, cw: r.width / g.cols, ch: r.height / g.rows, z0: { ...g.zones[i] } };
   zn.setPointerCapture(e.pointerId); e.preventDefault();
@@ -586,19 +752,19 @@ function zMove(e) {
 }
 const zUp = () => { ZD = null; };
 const zSave = guard(async () => {
-  ZE.name = $('#zn').value.trim() || 'Layout sem nome'; const r = await send('layouts', 'POST', ZE); await load(); toast('Layout salvo');
+  ZE.name = $('#zn').value.trim() || 'Layout sem nome'; const r = await send('layouts', 'POST', ZE); await load(); const nl = [ZE.h, ZE.v].reduce((a, g) => a + g.zones.filter(z => !z.playlistId).length, 0); toast(nl ? `Layout salvo. Atenção: ${nl} zona(s) sem lista ficam pretas.` : 'Layout salvo');
   if (!ZE.id) location.hash = '#/zonas/' + r.id; else { ZE = JSON.parse(JSON.stringify(S.layouts.find(l => l.id === ZE.id) || ZE)); zDraw(); }
 });
 
 /* ---------- rotas ---------- */
 function route() {
-  const [r = 'telas', id] = location.hash.replace(/^#\//, '').split('/');
+  const [r = 'inicio', id] = location.hash.replace(/^#\//, '').split('/');
   document.querySelectorAll('.side nav a').forEach(a => a.classList.toggle('on', a.dataset.r === r));
   sideStatus(); if (r !== 'listas' || !id) ed = null;
-  ({ telas: pTelas, arquivos: pArquivos, listas: () => id ? pEditor(id) : pListas(), zonas: () => id ? zEditor(id) : pZonas(), relatorios: pRel, status: pStatus, conta: pConta }[r] || pTelas)();
+  ({ inicio: pInicio, telas: pTelas, arquivos: pArquivos, listas: () => id ? pEditor(id) : pListas(), zonas: () => id ? zEditor(id) : pZonas(), relatorios: pRel, status: pStatus, conta: pConta }[r] || pInicio)();
 }
 addEventListener('hashchange', () => $('#page') && route());
 setInterval(async () => { if (!token || dlg.open || !$('#page')) return; try { await load(); } catch { return; } sideStatus();
-  const h = location.hash; if (h.includes('status')) pStatus(); else if (h.includes('conta')) pConta(); else if ((!h || h.includes('telas')) && $('#tbl')) renderTbl('screens'); }, 10000);
+  const h = location.hash; if (h.includes('status')) pStatus(); else if (/^#?\/?(inicio)?$/.test(h)) pInicio(); else if (h.includes('telas') && $('#tbl')) renderTbl('screens'); }, 10000);
 token ? boot().catch(x => { if (x.message !== 'login') showLogin(); }) : showLogin();
 </script></body></html>

@@ -15,6 +15,12 @@ const wantCap = {}; // device -> instante em que o painel pediu uma captura
 
 let db = fs.existsSync(DB) ? JSON.parse(fs.readFileSync(DB, 'utf8')) : { media: [], playlists: [], screens: [], devices: {} };
 db.layouts ||= []; // layouts de zonas
+db.activity ||= []; db.account ||= { name: '' };
+// "Alterações recentes": quem fez o quê (lista curta, as mais novas primeiro)
+const act = (kind, verb, noun, name, d) => { db.activity.unshift({ t: Date.now(), kind, verb, noun, name, who: db.account.name || 'Admin', d: d || [] }); if (db.activity.length > 400) db.activity.length = 400; };
+const plLabel = i => i.kind === 'clock' ? 'Relógio e data' : i.kind === 'weather' ? 'Clima — ' + (i.cfg.city || '') : i.kind === 'news' ? 'Notícias' : ((db.media.find(x => x.id === i.mediaId) || {}).name || 'arquivo removido');
+const diffLabels = (a, b) => { const c = {}; a.forEach(x => c[x] = (c[x] || 0) + 1); const add = [], del = [];
+  b.forEach(x => { if (c[x]) c[x]--; else add.push(x); }); Object.keys(c).forEach(x => { for (let k = 0; k < c[x]; k++) del.push(x); }); return { add, del }; };
 db.tags ||= [];
 const save = () => fs.writeFileSync(DB, JSON.stringify(db));
 const seen = {}; // device -> último contato (em memória)
@@ -31,6 +37,19 @@ for (const d of Object.keys(st.days)) if (d < cut) delete st.days[d]; // guarda 
 const WN = { clock: 'Relógio e data', weather: 'Clima', news: 'Notícias' };
 const bucket = (day, sid) => ((st.days[day] ||= {})[sid] ||= { online: 0, c: {} });
 const lastPoll = {}; let sdirty = false;
+st.hist ||= []; // histórico de status: { t: início da janela, on: mínimo online, tot: total, e: esperadas (dentro do horário), o: online entre as esperadas }
+const SLOT = 300000;
+const schedOn = (s, d) => { const x = s.schedule; if (!x || !x.days || !x.days.length) return true;
+  const hm = t => +t.slice(0, 2) * 60 + +t.slice(3), m = d.getHours() * 60 + d.getMinutes(), a = hm(x.start), b = hm(x.end), day = d.getDay(), prev = (day + 6) % 7;
+  if (a === b) return x.days.includes(day);
+  return a < b ? x.days.includes(day) && m >= a && m < b : (x.days.includes(day) && m >= a) || (x.days.includes(prev) && m < b); };
+function sampleHist() {
+  const now = Date.now(), t = Math.floor(now / SLOT) * SLOT, scs = db.screens, isOn = s => seen[s.device] && now - seen[s.device] < 60000;
+  const on = scs.filter(isOn).length, exp = scs.filter(s => schedOn(s, new Date(now))), o = exp.filter(isOn).length; let h = st.hist[st.hist.length - 1];
+  if (!h || h.t !== t) st.hist.push({ t, on, tot: scs.length, e: exp.length, o }); else { h.on = Math.min(h.on, on); h.o = Math.min(h.o, o); h.tot = scs.length; h.e = exp.length; }
+  if (st.hist.length > 2300) st.hist.splice(0, st.hist.length - 2300); sdirty = true;
+}
+setTimeout(() => { sampleHist(); setInterval(sampleHist, 60000).unref(); }, 30000).unref();
 const flushStats = () => { if (!sdirty) return; try { fs.writeFileSync(STATS + '.tmp', JSON.stringify(st)); fs.renameSync(STATS + '.tmp', STATS); sdirty = false; } catch (e) { console.error('Falha ao salvar stats:', e.message); } };
 setInterval(flushStats, 30000).unref();
 for (const sg of ['SIGINT', 'SIGTERM']) process.on(sg, () => { flushStats(); process.exit(0); });
@@ -155,9 +174,11 @@ function manifest(dev, plat) {
   const man = { paired: true, name: s.name, rotation: s.rotation || 0, fit: s.fit || 'contain', sound: !!s.sound, items: mapItems(db.playlists.find(p => p.id === s.playlistId)) };
   const lay = s.layoutId && db.layouts.find(l => l.id === s.layoutId);
   if (lay) { // tela com zonas: usa o desenho da orientação da tela, em porcentagem
-    const g = (s.rotation || 0) % 180 ? lay.v : lay.h, pc = n => Math.round(n * 10000) / 100;
-    man.items = [];
-    man.zones = g.zones.map(z => ({ x: pc(z.x / g.cols), y: pc(z.y / g.rows), w: pc(z.w / g.cols), h: pc(z.h / g.rows), rot: z.rot, fit: z.fit, items: mapItems(db.playlists.find(p => p.id === z.playlistId)) }));
+    const pc = n => Math.round(n * 10000) / 100, mk = g => g.zones.map(z => ({ x: pc(z.x / g.cols), y: pc(z.y / g.rows), w: pc(z.w / g.cols), h: pc(z.h / g.rows), rot: z.rot, fit: z.fit, items: mapItems(db.playlists.find(p => p.id === z.playlistId)) }));
+    man.zh = mk(lay.h); man.zv = mk(lay.v); // o player escolhe pelo formato real da tela (em pé ou deitada)
+    man.zones = (s.rotation || 0) % 180 ? man.zv : man.zh;
+    const seen = new Set(); // 'items' leva a união de tudo: apps antigos só baixam o que está em 'items'
+    man.items = [...man.zh, ...man.zv].reduce((a, z) => a.concat(z.items), []).filter(i => { const k = i.url || i.wk || i.id; if (seen.has(k)) return false; seen.add(k); return true; });
   }
   man.version = crypto.createHash('sha1').update(JSON.stringify(man)).digest('hex').slice(0, 12);
   if (wantCap[dev] && Date.now() - wantCap[dev] < 60000) man.capture = true; // fora do hash: não reinicia a lista
@@ -232,7 +253,7 @@ http.createServer(async (req, res) => {
         return json(res, 200, { tz: TZ, today: dayOf(Date.now()), days, names, screens });
       }
       if (p === '/api/state') {
-        return json(res, 200, { now: Date.now(), tags: db.tags, media: db.media, playlists: db.playlists, layouts: db.layouts,
+        return json(res, 200, { now: Date.now(), tags: db.tags, media: db.media, playlists: db.playlists, layouts: db.layouts, account: db.account,
           screens: db.screens.map(s => ({ ...s, seen: seen[s.device] || 0 })) });
       }
       if (p === '/api/tags' && m === 'POST') {
@@ -260,11 +281,12 @@ http.createServer(async (req, res) => {
         const id = rid(), file = id + ext;
         await pipeline(req, fs.createWriteStream(path.join(MEDIA, file)));
         db.media.push({ id, name, type, kind: ext === '.gif' ? 'gif' : type, file, size, duration: Math.round((+u.searchParams.get('dur') || 0) * 10) / 10, created: Date.now() });
-        save(); return json(res, 200, { id });
+        act('add', 'adicionou', 'o arquivo', name); save(); return json(res, 200, { id });
       }
       if ((r = p.match(/^\/api\/media\/(\w+)$/)) && m === 'PATCH') {
         const x = db.media.find(a => a.id === r[1]); if (!x) return json(res, 404, { error: 'Arquivo não encontrado' });
         const b = await readBody(req);
+        if (b.name && String(b.name).slice(0, 120) !== x.name) act('edit', 'alterou', 'o arquivo', String(b.name).slice(0, 120), [{ k: 'Nome do Arquivo', from: x.name, to: String(b.name).slice(0, 120) }]);
         if (b.name) x.name = String(b.name).slice(0, 120);
         if ('tags' in b) x.tags = vt(b.tags, 'files');
         if (+b.duration > 0) x.duration = Math.round(+b.duration * 10) / 10;
@@ -272,7 +294,7 @@ http.createServer(async (req, res) => {
       }
       if ((r = p.match(/^\/api\/media\/(\w+)$/)) && m === 'DELETE') {
         const x = db.media.find(a => a.id === r[1]);
-        if (x) { fs.rmSync(path.join(MEDIA, x.file), { force: true }); db.media = db.media.filter(a => a !== x);
+        if (x) { act('del', 'removeu', 'o arquivo', x.name); fs.rmSync(path.join(MEDIA, x.file), { force: true }); db.media = db.media.filter(a => a !== x);
           db.playlists.forEach(pl => pl.items = pl.items.filter(i => i.mediaId !== x.id)); save(); }
         return json(res, 200, {});
       }
@@ -285,15 +307,24 @@ http.createServer(async (req, res) => {
             if (i.kind === 'news') return { kind: 'news', seconds, cfg: vNews(i.cfg) };
             return { kind: 'media', mediaId: i.mediaId, seconds }; }) };
         const k = db.playlists.findIndex(x => x.id === pl.id);
+        if (k < 0) act('add', 'criou', 'a lista de reprodução', pl.name);
+        else { const old = db.playlists[k], df = diffLabels(old.items.map(plLabel), pl.items.map(plLabel)), d = [];
+          if (old.name !== pl.name) d.push({ k: 'Nome', from: old.name, to: pl.name }); if (df.add.length || df.del.length) d.push({ k: 'Itens', add: df.add, del: df.del });
+          if (d.length) act('edit', 'alterou', 'a lista de reprodução', pl.name, d); }
         pl.created = k < 0 ? Date.now() : db.playlists[k].created || Date.now();
         pl.tags = 'tags' in b ? vt(b.tags, 'lists') : (k < 0 ? [] : db.playlists[k].tags || []);
         k < 0 ? db.playlists.push(pl) : (db.playlists[k] = pl); save(); return json(res, 200, pl);
       }
       if ((r = p.match(/^\/api\/playlists\/(\w+)$/)) && m === 'DELETE') {
+        { const gone = db.playlists.find(x => x.id === r[1]); if (gone) act('del', 'removeu', 'a lista de reprodução', gone.name); }
         db.playlists = db.playlists.filter(x => x.id !== r[1]); db.screens.forEach(s => { if (s.playlistId === r[1]) s.playlistId = null; });
         db.layouts.forEach(l => [l.h, l.v].forEach(g => g.zones.forEach(z => { if (z.playlistId === r[1]) z.playlistId = null; })));
         save(); return json(res, 200, {});
       }
+      if (p === '/api/activity' && m === 'GET') return json(res, 200, db.activity.slice(0, Math.min(200, +u.searchParams.get('limit') || 40)));
+      if (p === '/api/history' && m === 'GET') { const hrs = Math.min(168, Math.max(1, +u.searchParams.get('hours') || 24)), now = Date.now();
+        return json(res, 200, { now, slot: SLOT, slots: st.hist.filter(h => h.t >= now - hrs * 3600e3) }); }
+      if (p === '/api/account' && m === 'POST') { const b = await readBody(req); db.account.name = String(b.name || '').trim().slice(0, 60); save(); return json(res, 200, db.account); }
       if (p === '/api/geocode' && m === 'GET') {
         const q = (u.searchParams.get('q') || '').trim().slice(0, 80); if (q.length < 2) return json(res, 200, []);
         try { const j = await getJ(`${OMG}/v1/search?name=${encodeURIComponent(q)}&count=6&language=pt&format=json`);
@@ -308,9 +339,10 @@ http.createServer(async (req, res) => {
       if (p === '/api/layouts' && m === 'POST') {
         const b = await readBody(req), k = db.layouts.findIndex(x => x.id === b.id);
         const l = { id: k < 0 ? rid() : b.id, name: String(b.name || 'Layout sem nome').slice(0, 80), h: vg(b.h), v: vg(b.v), created: k < 0 ? Date.now() : db.layouts[k].created };
-        k < 0 ? db.layouts.push(l) : (db.layouts[k] = l); save(); return json(res, 200, l);
+        act(k < 0 ? 'add' : 'edit', k < 0 ? 'criou' : 'alterou', 'o layout de zonas', l.name); k < 0 ? db.layouts.push(l) : (db.layouts[k] = l); save(); return json(res, 200, l);
       }
       if ((r = p.match(/^\/api\/layouts\/(\w+)$/)) && m === 'DELETE') {
+        { const gone = db.layouts.find(x => x.id === r[1]); if (gone) act('del', 'removeu', 'o layout de zonas', gone.name); }
         db.layouts = db.layouts.filter(x => x.id !== r[1]); db.screens.forEach(s => { if (s.layoutId === r[1]) s.layoutId = null; });
         save(); return json(res, 200, {});
       }
@@ -320,7 +352,7 @@ http.createServer(async (req, res) => {
         if (!dev) return json(res, 404, { error: 'Código não encontrado. Confira o código exibido na tela.' });
         if (db.screens.some(s => s.device === dev)) return json(res, 409, { error: 'Esta tela já está pareada.' });
         db.screens.push({ id: rid(), device: dev, name: String(b.name || 'Nova tela').slice(0, 80), playlistId: b.playlistId || null, layoutId: db.layouts.some(l => l.id === b.layoutId) ? b.layoutId : null, rotation: 0, fit: 'contain', sound: false, created: Date.now(), ...clean(b) });
-        save(); return json(res, 200, {});
+        act('add', 'vinculou', 'a tela', db.screens[db.screens.length - 1].name); save(); return json(res, 200, {});
       }
       if ((r = p.match(/^\/api\/screens\/(\w+)\/capture$/)) && m === 'POST') {
         const sc = db.screens.find(x => x.id === r[1]); if (!sc) return json(res, 404, { error: 'Tela não encontrada' });
@@ -329,8 +361,11 @@ http.createServer(async (req, res) => {
       if ((r = p.match(/^\/api\/captures\/(\w+)$/)) && m === 'GET') return serve(req, res, path.join(CAPT, r[1] + '.jpg'));
       if ((r = p.match(/^\/api\/screens\/(\w+)$/))) {
         const s = db.screens.find(x => x.id === r[1]); if (!s) return json(res, 404, { error: 'Tela não encontrada' });
-        if (m === 'PATCH') { const b = await readBody(req); if ('playlistId' in b) s.playlistId = b.playlistId || null; if ('layoutId' in b) s.layoutId = db.layouts.some(l => l.id === b.layoutId) ? b.layoutId : null; if (b.name) s.name = String(b.name).slice(0, 80); Object.assign(s, clean(b)); }
-        if (m === 'DELETE') { fs.rmSync(path.join(CAPT, s.id + '.jpg'), { force: true }); db.screens = db.screens.filter(x => x !== s); delete db.devices[s.device]; }
+        if (m === 'PATCH') { const b = await readBody(req), before = JSON.stringify(s), oldPl = (db.playlists.find(x => x.id === s.playlistId) || {}).name || '—', oldLy = (db.layouts.find(x => x.id === s.layoutId) || {}).name || '—', oldName = s.name; if ('playlistId' in b) s.playlistId = b.playlistId || null; if ('layoutId' in b) s.layoutId = db.layouts.some(l => l.id === b.layoutId) ? b.layoutId : null; if (b.name) s.name = String(b.name).slice(0, 80); Object.assign(s, clean(b));
+          if (JSON.stringify(s) !== before) { const d = [], npl = (db.playlists.find(x => x.id === s.playlistId) || {}).name || '—', nly = (db.layouts.find(x => x.id === s.layoutId) || {}).name || '—';
+            if (oldName !== s.name) d.push({ k: 'Nome', from: oldName, to: s.name }); if (oldPl !== npl) d.push({ k: 'Lista de reprodução', from: oldPl, to: npl }); if (oldLy !== nly) d.push({ k: 'Layout de zonas', from: oldLy, to: nly });
+            if (!d.length) d.push({ k: 'Configurações', from: '', to: 'atualizadas' }); act('edit', 'alterou', 'a tela', s.name, d); } }
+        if (m === 'DELETE') { act('del', 'removeu', 'a tela', s.name); fs.rmSync(path.join(CAPT, s.id + '.jpg'), { force: true }); db.screens = db.screens.filter(x => x !== s); delete db.devices[s.device]; }
         save(); return json(res, 200, {});
       }
       return json(res, 404, { error: 'Rota não encontrada' });
