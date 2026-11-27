@@ -82,13 +82,18 @@ function pickZones() {
 var relz = function (z) { if (z.rel) { try { z.rel(); } catch (e) {} z.rel = null; } }; // solta o vídeo anterior (libera o decodificador)
 stop = function () { zs.forEach(function (z) { z.stop(); }); };
 function build(id) {
-  var zones = pickZones() || [{ x: 0, y: 0, w: 100, h: 100, rot: 0, fit: '', items: man.items || [], full: true }];
-  var big = zones.reduce(function (b, d, i) { return d.w * d.h > zones[b].w * zones[b].h ? i : b; }, 0); // só a maior zona toca som
+  // ordem: lista de fundo (tela toda) embaixo; as zonas ficam por cima, cada uma com a sua lista
+  var ov = pickZones(), bgItems = man.bg && man.bg.length ? man.bg : null;
+  var zones = ov || (bgItems ? [] : [{ x: 0, y: 0, w: 100, h: 100, rot: 0, fit: '', items: man.items || [], full: true }]);
+  var bgz = bgItems ? { x: 0, y: 0, w: 100, h: 100, rot: 0, fit: '', items: bgItems, bg: true } : null;
+  var all = (bgz ? [bgz] : []).concat(zones), pool = zones.length ? zones : (bgz ? [bgz] : []);
+  var big = pool.reduce(function (b, d, i) { return d.w * d.h > pool[b].w * pool[b].h ? i : b; }, 0); // só a maior zona toca som
   zs.forEach(relz); stage.innerHTML = ''; zs = [];
-  zones.forEach(function (zd, i) {
+  if (!all.length) { msg('Layout sem conteúdo', 'Escolha a lista de fundo ou uma zona'); return; }
+  all.forEach(function (zd) {
     var host = document.createElement('div'), el = document.createElement('div'); host.className = 'z'; el.className = 'zi';
-    host.style.cssText = 'left:' + zd.x + '%;top:' + zd.y + '%;width:' + zd.w + '%;height:' + zd.h + '%'; if (zd.fit) host.style.setProperty('--fit', zd.fit);
-    host.appendChild(el); stage.appendChild(host); zs.push({ stop: function () {}, el: el, host: host, zd: zd, audio: i === big, cur: '', rel: null, idx: 0 });
+    host.style.cssText = 'left:' + zd.x + '%;top:' + zd.y + '%;width:' + zd.w + '%;height:' + zd.h + '%;z-index:' + (zd.bg ? 1 : 2); if (zd.fit) host.style.setProperty('--fit', zd.fit);
+    host.appendChild(el); stage.appendChild(host); zs.push({ stop: function () {}, el: el, host: host, zd: zd, audio: pool.length && pool[big] === zd, cur: '', rel: null, idx: 0 });
   });
   zs.forEach(function (z) { // rotação própria da zona, medida depois de entrar na tela
     var W = z.host.clientWidth, H = z.host.clientHeight, r = z.zd.rot || 0, st = z.el.style;
@@ -109,7 +114,22 @@ async function loop(z, id) {
   }
 }
 // muda a tela da zona (o item novo já está pronto, então não pisca em preto)
-function swap(z, node, rel) { relz(z); z.el.innerHTML = ''; z.el.appendChild(node); z.rel = rel || null; }
+// troca o conteúdo da zona com a transição escolhida (zona > tela > padrão). O novo aparece por cima do antigo; o antigo sai quando o novo termina.
+function swap(z, node, rel) {
+  var tr = z.zd.tr || man.tr || { type: 'fade', ms: 600 }, old = [].slice.call(z.el.childNodes), oldRel = z.rel;
+  z.rel = rel || null;
+  var done = function () { old.forEach(function (n) { if (n !== node && n.parentNode) n.parentNode.removeChild(n); }); if (oldRel) { try { oldRel(); } catch (e) {} } node.style.position = ''; node.style.zIndex = ''; node.style.opacity = ''; node.style.transition = ''; node.style.transform = node.dataset.base || ''; };
+  if (!old.length || tr.type === 'none' || !tr.ms) { z.el.innerHTML = ''; z.el.appendChild(node); done(); return; }
+  node.dataset.base = node.style.transform || '';
+  node.style.position = 'absolute'; node.style.left = '0'; node.style.top = '0'; node.style.width = '100%'; node.style.height = '100%'; node.style.zIndex = '2';
+  if (tr.type === 'fade') node.style.opacity = '0';
+  else if (tr.type === 'slide') node.style.transform = 'translateX(100%)';
+  else { node.style.opacity = '0'; node.style.transform = 'scale(1.05)'; }
+  z.el.appendChild(node); void node.offsetWidth; // força o estado inicial antes de animar
+  node.style.transition = 'opacity ' + tr.ms + 'ms ease, transform ' + tr.ms + 'ms ease';
+  node.style.opacity = '1'; node.style.transform = node.dataset.base;
+  setTimeout(done, tr.ms + 60);
+}
 // resize / girar o aparelho: refaz as zonas com o desenho certo
 var rsz = 0, lw = innerWidth, lh = innerHeight;
 addEventListener('resize', function () {

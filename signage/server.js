@@ -15,6 +15,7 @@ const wantCap = {}; // device -> instante em que o painel pediu uma captura
 
 let db = fs.existsSync(DB) ? JSON.parse(fs.readFileSync(DB, 'utf8')) : { media: [], playlists: [], screens: [], devices: {} };
 db.layouts ||= []; // layouts de zonas
+db.defaultLayoutId ||= ''; db.tagLayouts ||= {}; // layout padrão (todas as telas) e layout por etiqueta de tela
 db.activity ||= []; db.account ||= { name: '' };
 // "Alterações recentes": quem fez o quê (lista curta, as mais novas primeiro)
 const act = (kind, verb, noun, name, d) => { db.activity.unshift({ t: Date.now(), kind, verb, noun, name, who: db.account.name || 'Admin', d: d || [] }); if (db.activity.length > 400) db.activity.length = 400; };
@@ -57,12 +58,14 @@ const tokens = new Set();
 const fails = {}; // ip -> { n, t }: bloqueia quem erra a senha muitas vezes
 const ipOf = req => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 const vt = (arr, scope) => (Array.isArray(arr) ? arr : []).filter(id => db.tags.some(t => t.id === id && t.scope === scope));
+// transição entre mídias: tipo e duração em ms (padrão: esmaecer, 600 ms)
+const vtr = t => ({ type: ['none', 'fade', 'slide', 'zoom'].includes(t && t.type) ? t.type : 'fade', ms: Math.round(vnum(t && t.ms, 0, 3000, 600)) });
 // grade de um layout: cols x rows, zonas em unidades da grade (x, y, w, h) e a playlist de cada uma
 const vg = g => { const cols = Math.min(48, Math.max(4, parseInt(g?.cols) || 24)), rows = Math.min(48, Math.max(4, parseInt(g?.rows) || 24));
   const zones = (Array.isArray(g?.zones) ? g.zones : []).slice(0, 20).map(z => {
     const x = Math.min(cols - 1, Math.max(0, parseInt(z.x) || 0)), y = Math.min(rows - 1, Math.max(0, parseInt(z.y) || 0));
     return { id: /^\w{1,20}$/.test(z.id || '') ? z.id : rid(), x, y, w: Math.min(cols - x, Math.max(1, parseInt(z.w) || 1)), h: Math.min(rows - y, Math.max(1, parseInt(z.h) || 1)),
-      playlistId: z.playlistId || null, content: vc(z.content), rot: [0, 90, 180, 270].includes(+z.rot) ? +z.rot : 0, fit: ['contain', 'cover', 'fill'].includes(z.fit) ? z.fit : '' }; });
+      playlistId: z.playlistId || null, content: vc(z.content), tr: z.tr ? vtr(z.tr) : null, rot: [0, 90, 180, 270].includes(+z.rot) ? +z.rot : 0, fit: ['contain', 'cover', 'fill'].includes(z.fit) ? z.fit : '' }; });
   return { cols, rows, zones }; };
 // conteúdo direto da zona: um arquivo (com zoom e posição) ou um widget, sem precisar de lista
 const vc = c => { if (!c || typeof c !== 'object') return null;
@@ -76,6 +79,7 @@ const clean = b => { const o = {};
   if ('rotation' in b) o.rotation = [0, 90, 180, 270].includes(+b.rotation) ? +b.rotation : 0;
   if ('fit' in b) o.fit = ['contain', 'cover', 'fill'].includes(b.fit) ? b.fit : 'contain';
   if ('sound' in b) o.sound = !!b.sound;
+  if ('transition' in b) o.transition = vtr(b.transition);
   if ('tags' in b) o.tags = vt(b.tags, 'screens');
   if ('schedule' in b) { const x = b.schedule; // horário de funcionamento (null = sempre ligada)
     o.schedule = x && /^\d\d:\d\d$/.test(x.start) && /^\d\d:\d\d$/.test(x.end) && Array.isArray(x.days) && x.days.length
@@ -97,7 +101,12 @@ const feedOk = u => { try { const x = new URL(u); return x.protocol === 'http:' 
 const vNews = c => ({ ...wStyle(c || {}, { bg: '#111111', color: '#ffffff', accent: '#ff7a00' }), feeds: (Array.isArray(c?.feeds) ? c.feeds : []).map(x => String(x).trim()).filter(feedOk).slice(0, 5),
   count: Math.round(vnum(c?.count, 3, 30, 10)), mode: c?.mode === 'slides' ? 'slides' : 'ticker', speed: vnum(c?.speed, 20, 200, 70), interval: vnum(c?.interval, 3, 60, 8), label: String(c?.label ?? 'NOTÍCIAS').slice(0, 24) });
 const wkOf = i => crypto.createHash('sha1').update(i.kind + JSON.stringify(i.kind === 'weather' ? [i.cfg.lat, i.cfg.lon] : [i.cfg.feeds, i.cfg.count])).digest('hex').slice(0, 12);
-const screenWidgets = sc => { const ids = new Set([sc.playlistId]), l = sc.layoutId && db.layouts.find(x => x.id === sc.layoutId);
+const effLayout = s => { // ordem: layout escolhido na tela > layout da etiqueta da tela > layout padrão. 'none' = sem layout.
+  if (s.layoutId === 'none') return null;
+  if (s.layoutId) { const l = db.layouts.find(x => x.id === s.layoutId); if (l) return l; }
+  for (const t of (s.tags || [])) { const lid = db.tagLayouts[t], l = lid && db.layouts.find(x => x.id === lid); if (l) return l; }
+  return db.layouts.find(x => x.id === db.defaultLayoutId) || null; };
+const screenWidgets = sc => { const ids = new Set([sc.playlistId]), l = effLayout(sc);
   const inline = []; if (l) [l.h, l.v].forEach(g => g.zones.forEach(z => { ids.add(z.playlistId); if (z.content && z.content.type === 'widget' && z.content.item.kind !== 'clock') inline.push(z.content.item); }));
   return db.playlists.filter(x => ids.has(x.id)).flatMap(x => x.items.filter(i => i.kind === 'weather' || i.kind === 'news')).concat(inline); };
 const wCache = new Map(), wBusy = new Map();
@@ -179,15 +188,16 @@ function manifest(dev, plat) {
     const m = db.media.find(x => x.id === i.mediaId);
     return m && { id: m.id, type: m.type, url: '/media/' + m.file, seconds: i.seconds };
   }).filter(Boolean);
-  const man = { paired: true, name: s.name, rotation: s.rotation || 0, fit: s.fit || 'contain', sound: !!s.sound, items: mapItems(db.playlists.find(p => p.id === s.playlistId)) };
-  const lay = s.layoutId && db.layouts.find(l => l.id === s.layoutId);
+  const man = { paired: true, name: s.name, rotation: s.rotation || 0, fit: s.fit || 'contain', sound: !!s.sound, tr: vtr(s.transition), items: mapItems(db.playlists.find(p => p.id === s.playlistId)) };
+  const lay = effLayout(s);
   if (lay) { // tela com zonas: usa o desenho da orientação da tela, em porcentagem
     const zItems = z => !z.content ? mapItems(db.playlists.find(p => p.id === z.playlistId)) : z.content.type === 'file' ? mapItems({ items: [{ kind: 'media', mediaId: z.content.mediaId, seconds: 10 }] }) : mapItems({ items: [z.content.item] });
-    const pc = n => Math.round(n * 10000) / 100, mk = g => g.zones.map(z => ({ x: pc(z.x / g.cols), y: pc(z.y / g.rows), w: pc(z.w / g.cols), h: pc(z.h / g.rows), rot: z.rot, fit: z.fit, view: z.content && z.content.type === 'file' ? { zoom: z.content.zoom, ax: z.content.ax, ay: z.content.ay } : null, items: zItems(z) }));
-    man.zh = mk(lay.h); man.zv = mk(lay.v); // o player escolhe pelo formato real da tela (em pé ou deitada)
-    man.zones = (s.rotation || 0) % 180 ? man.zv : man.zh;
+    const pc = n => Math.round(n * 10000) / 100, mk = g => g.zones.map(z => ({ x: pc(z.x / g.cols), y: pc(z.y / g.rows), w: pc(z.w / g.cols), h: pc(z.h / g.rows), rot: z.rot, fit: z.fit, tr: null, view: z.content && z.content.type === 'file' ? { zoom: z.content.zoom, ax: z.content.ax, ay: z.content.ay } : null, items: zItems(z) }));
+    const g = lay.v && lay.v.zones.length ? lay.v : lay.h; // o layout é sempre vertical; a transição vem da tela
+    man.zh = mk(g); man.zv = man.zh; man.zones = man.zh;
+    man.bg = lay.bg ? mapItems(db.playlists.find(p => p.id === lay.bg)) : null; // lista de fundo: ocupa a tela toda, as zonas ficam por cima
     const seen = new Set(); // 'items' leva a união de tudo: apps antigos só baixam o que está em 'items'
-    man.items = [...man.zh, ...man.zv].reduce((a, z) => a.concat(z.items), []).filter(i => { const k = i.url || i.wk || i.id; if (seen.has(k)) return false; seen.add(k); return true; });
+    man.items = [...(man.bg || []), ...[...man.zh, ...man.zv].reduce((a, z) => a.concat(z.items), [])].filter(i => { const k = i.url || i.wk || i.id; if (seen.has(k)) return false; seen.add(k); return true; });
   }
   man.version = crypto.createHash('sha1').update(JSON.stringify(man)).digest('hex').slice(0, 12);
   if (wantCap[dev] && Date.now() - wantCap[dev] < 60000) man.capture = true; // fora do hash: não reinicia a lista
@@ -262,7 +272,7 @@ http.createServer(async (req, res) => {
         return json(res, 200, { tz: TZ, today: dayOf(Date.now()), days, names, screens });
       }
       if (p === '/api/state') {
-        return json(res, 200, { now: Date.now(), tags: db.tags, media: db.media, playlists: db.playlists, layouts: db.layouts, account: db.account,
+        return json(res, 200, { now: Date.now(), tags: db.tags, media: db.media, playlists: db.playlists, layouts: db.layouts, account: db.account, defaultLayoutId: db.defaultLayoutId, tagLayouts: db.tagLayouts,
           screens: db.screens.map(s => ({ ...s, seen: seen[s.device] || 0 })) });
       }
       if (p === '/api/tags' && m === 'POST') {
@@ -326,6 +336,7 @@ http.createServer(async (req, res) => {
       }
       if ((r = p.match(/^\/api\/playlists\/(\w+)$/)) && m === 'DELETE') {
         { const gone = db.playlists.find(x => x.id === r[1]); if (gone) act('del', 'removeu', 'a lista de reprodução', gone.name); }
+        db.layouts.forEach(l => { if (l.bg === r[1]) l.bg = null; });
         db.playlists = db.playlists.filter(x => x.id !== r[1]); db.screens.forEach(s => { if (s.playlistId === r[1]) s.playlistId = null; });
         db.layouts.forEach(l => [l.h, l.v].forEach(g => g.zones.forEach(z => { if (z.playlistId === r[1]) z.playlistId = null; })));
         save(); return json(res, 200, {});
@@ -345,14 +356,21 @@ http.createServer(async (req, res) => {
         try { const e = b.kind === 'weather' ? await weather(vWeather(b.cfg)) : await news(vNews(b.cfg)); return json(res, 200, e.data); }
         catch (e) { return json(res, 502, { error: e.message }); }
       }
+      if (p === '/api/layout-settings' && m === 'POST') {
+        const b = await readBody(req), ok = id => !id || db.layouts.some(l => l.id === id);
+        db.defaultLayoutId = ok(b.defaultLayoutId) ? (b.defaultLayoutId || '') : db.defaultLayoutId;
+        const tl = {}; for (const [t, l] of Object.entries(b.tagLayouts || {})) if (db.tags.some(x => x.id === t) && l && ok(l)) tl[t] = l;
+        db.tagLayouts = tl; save(); return json(res, 200, { defaultLayoutId: db.defaultLayoutId, tagLayouts: db.tagLayouts });
+      }
       if (p === '/api/layouts' && m === 'POST') {
         const b = await readBody(req), k = db.layouts.findIndex(x => x.id === b.id);
-        const l = { id: k < 0 ? rid() : b.id, name: String(b.name || 'Layout sem nome').slice(0, 80), h: vg(b.h), v: vg(b.v), created: k < 0 ? Date.now() : db.layouts[k].created };
+        const l = { id: k < 0 ? rid() : b.id, name: String(b.name || 'Layout sem nome').slice(0, 80), h: vg(b.h), v: vg(b.v), bg: db.playlists.some(x => x.id === b.bg) ? b.bg : null, created: k < 0 ? Date.now() : db.layouts[k].created };
         act(k < 0 ? 'add' : 'edit', k < 0 ? 'criou' : 'alterou', 'o layout de zonas', l.name); k < 0 ? db.layouts.push(l) : (db.layouts[k] = l); save(); return json(res, 200, l);
       }
       if ((r = p.match(/^\/api\/layouts\/(\w+)$/)) && m === 'DELETE') {
         { const gone = db.layouts.find(x => x.id === r[1]); if (gone) act('del', 'removeu', 'o layout de zonas', gone.name); }
         db.layouts = db.layouts.filter(x => x.id !== r[1]); db.screens.forEach(s => { if (s.layoutId === r[1]) s.layoutId = null; });
+        if (db.defaultLayoutId === r[1]) db.defaultLayoutId = ''; for (const k of Object.keys(db.tagLayouts)) if (db.tagLayouts[k] === r[1]) delete db.tagLayouts[k];
         save(); return json(res, 200, {});
       }
       if (p === '/api/screens' && m === 'POST') {
@@ -360,7 +378,7 @@ http.createServer(async (req, res) => {
         const dev = Object.keys(db.devices).find(k => db.devices[k].code === String(b.code).trim());
         if (!dev) return json(res, 404, { error: 'Código não encontrado. Confira o código exibido na tela.' });
         if (db.screens.some(s => s.device === dev)) return json(res, 409, { error: 'Esta tela já está pareada.' });
-        db.screens.push({ id: rid(), device: dev, name: String(b.name || 'Nova tela').slice(0, 80), playlistId: b.playlistId || null, layoutId: db.layouts.some(l => l.id === b.layoutId) ? b.layoutId : null, rotation: 0, fit: 'contain', sound: false, created: Date.now(), ...clean(b) });
+        db.screens.push({ id: rid(), device: dev, name: String(b.name || 'Nova tela').slice(0, 80), playlistId: b.playlistId || null, layoutId: b.layoutId === 'none' ? 'none' : db.layouts.some(l => l.id === b.layoutId) ? b.layoutId : '', rotation: 0, fit: 'contain', sound: false, created: Date.now(), ...clean(b) });
         act('add', 'vinculou', 'a tela', db.screens[db.screens.length - 1].name); save(); return json(res, 200, {});
       }
       if ((r = p.match(/^\/api\/screens\/(\w+)\/capture$/)) && m === 'POST') {
@@ -370,7 +388,7 @@ http.createServer(async (req, res) => {
       if ((r = p.match(/^\/api\/captures\/(\w+)$/)) && m === 'GET') return serve(req, res, path.join(CAPT, r[1] + '.jpg'));
       if ((r = p.match(/^\/api\/screens\/(\w+)$/))) {
         const s = db.screens.find(x => x.id === r[1]); if (!s) return json(res, 404, { error: 'Tela não encontrada' });
-        if (m === 'PATCH') { const b = await readBody(req), before = JSON.stringify(s), oldPl = (db.playlists.find(x => x.id === s.playlistId) || {}).name || '—', oldLy = (db.layouts.find(x => x.id === s.layoutId) || {}).name || '—', oldName = s.name; if ('playlistId' in b) s.playlistId = b.playlistId || null; if ('layoutId' in b) s.layoutId = db.layouts.some(l => l.id === b.layoutId) ? b.layoutId : null; if (b.name) s.name = String(b.name).slice(0, 80); Object.assign(s, clean(b));
+        if (m === 'PATCH') { const b = await readBody(req), before = JSON.stringify(s), oldPl = (db.playlists.find(x => x.id === s.playlistId) || {}).name || '—', oldLy = (db.layouts.find(x => x.id === s.layoutId) || {}).name || '—', oldName = s.name; if ('playlistId' in b) s.playlistId = b.playlistId || null; if ('layoutId' in b) s.layoutId = b.layoutId === 'none' ? 'none' : db.layouts.some(l => l.id === b.layoutId) ? b.layoutId : ''; if (b.name) s.name = String(b.name).slice(0, 80); Object.assign(s, clean(b));
           if (JSON.stringify(s) !== before) { const d = [], npl = (db.playlists.find(x => x.id === s.playlistId) || {}).name || '—', nly = (db.layouts.find(x => x.id === s.layoutId) || {}).name || '—';
             if (oldName !== s.name) d.push({ k: 'Nome', from: oldName, to: s.name }); if (oldPl !== npl) d.push({ k: 'Lista de reprodução', from: oldPl, to: npl }); if (oldLy !== nly) d.push({ k: 'Layout de zonas', from: oldLy, to: nly });
             if (!d.length) d.push({ k: 'Configurações', from: '', to: 'atualizadas' }); act('edit', 'alterou', 'a tela', s.name, d); } }

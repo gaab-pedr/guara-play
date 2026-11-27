@@ -208,7 +208,7 @@ const V = {
     rows: () => S.screens, text: s => s.name + ' ' + (plOf(s.playlistId)?.name || '') + ' ' + (lyOf(s.layoutId)?.name || '') + ' ' + tagNames(s),
     cols: [{ h: 'Nome', td: s => `<button class="chip" onclick="editScreen('${s.id}')">${esc(s.name)}</button>` },
       { h: 'Etiquetas', td: s => tagChips(s.tags) },
-      { h: 'Lista de reprodução', td: s => lyOf(s.layoutId) ? '<b>Zonas:</b> ' + esc(lyOf(s.layoutId).name) : plOf(s.playlistId) ? tag(s.playlistId, plOf(s.playlistId).name) : '<span class="mut">—</span>' },
+      { h: 'Lista de reprodução', td: s => effLayoutC(s) ? '<b>Zonas:</b> ' + esc(effLayoutC(s).l.name) : plOf(s.playlistId) ? tag(s.playlistId, plOf(s.playlistId).name) : '<span class="mut">—</span>' },
       { h: 'Aparelho', td: s => s.platform || '<span class="mut">—</span>' }, { h: 'Rotação', td: s => (s.rotation || 0) + '°' },
       { h: 'Última conexão', td: s => ago(s.seen) }, { h: 'Horário', td: s => schedTxt(s) },
       { h: 'Captura de tela', td: s => `<button onclick="capture('${s.id}')" aria-label="Captura de tela de ${esc(s.name)}"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linejoin:round;display:block"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>` }] },
@@ -221,11 +221,12 @@ const V = {
   lists: { noun: 'listas',
     sorts: { created: ['Data de criação', (a, b) => (b.created || 0) - (a.created || 0)], name: ['Nome (A–Z)', (a, b) => a.name.localeCompare(b.name)], dur: ['Duração', (a, b) => plDur(b) - plDur(a)] },
     rows: () => S.playlists, text: p => p.name + ' ' + tagNames(p),
-    cols: [{ h: 'Nome', td: p => `<a class="chip" style="color:inherit;text-decoration:none" href="#/listas/${p.id}">${esc(p.name)}</a>` },
+    cols: [{ h: 'Nome', td: p => `<a href="#/listas/${p.id}" style="color:var(--ac2,#2563eb);font-weight:600;text-decoration:underline">${esc(p.name)}</a>` },
       { h: 'Prévia', td: p => strip(p) },
       { h: 'Etiquetas', td: p => tagChips(p.tags) },
       { h: 'Telas que veiculam esta lista', td: p => S.screens.filter(s => usesPl(s, p.id)).map(s => tag(s.id, s.name)).join('') || '<span class="mut">Nenhuma</span>' },
-      { h: 'Tempo de duração', td: p => `<span class="chip dur">${fmt(plDur(p))}</span>` }] },
+      { h: 'Tempo de duração', td: p => `<span class="chip dur">${fmt(plDur(p))}</span>` },
+      { h: '', td: p => `<button onclick="location.hash='#/listas/${p.id}'">Editar</button>` }] },
 };
 function listPage(key, title, btn, extra = '') {
   const v = V[key], t = T[key];
@@ -259,7 +260,7 @@ const selPage = (k, on) => { T[k].cur.forEach(id => on ? T[k].sel.add(id) : T[k]
 const PATHS = { screens: 'screens/', files: 'media/', lists: 'playlists/' };
 const bulkDel = guard(async k => { if (!confirm(`Excluir ${T[k].sel.size} item(ns)? Não dá para desfazer.`)) return;
   for (const id of T[k].sel) await api(PATHS[k] + id, { method: 'DELETE' }); T[k].sel.clear(); await load(); renderTbl(k); sideStatus(); });
-const bulkList = guard(async (k, v) => { if (v === '__') return; for (const id of T[k].sel) await send('screens/' + id, 'PATCH', { playlistId: v, layoutId: '' }); T[k].sel.clear(); await load(); renderTbl(k); });
+const bulkList = guard(async (k, v) => { if (v === '__') return; for (const id of T[k].sel) await send('screens/' + id, 'PATCH', { playlistId: v, layoutId: 'none' }); T[k].sel.clear(); await load(); renderTbl(k); });
 
 /* ---------- Etiquetas / pastas ---------- */
 function renderTagbar(key) {
@@ -298,17 +299,17 @@ function pairScreen() {
 const doPair = guard(async () => { await send('screens', 'POST', { code: $('#c').value, name: $('#n').value, playlistId: $('#l').value, layoutId: $('#ly').value, rotation: +$('#r').value }); closeM(); await load(); route(); });
 function editScreen(id) {
   const s = S.screens.find(x => x.id === id);
-  modal(`<h2>Editar tela</h2><label class="f">Nome<input id="n" value="${esc(s.name)}"></label><label class="f">Lista de reprodução<select id="l">${plOpts(s.playlistId)}</select></label><label class="f">Layout de zonas (substitui a lista)<select id="ly">${lyOpts(s.layoutId)}</select></label>
+  modal(`<h2>Editar tela</h2><label class="f">Nome<input id="n" value="${esc(s.name)}"></label><label class="f">Lista de reprodução<select id="l">${plOpts(s.playlistId)}</select></label><label class="f">Layout de zonas<select id="ly">${lyOpts(s.layoutId)}</select></label><div class="mut sm" style="margin:-6px 0 10px">${(() => { const ef = effLayoutC(s); return s.layoutId === 'none' ? 'Usando só a lista de reprodução.' : ef ? `Vai usar o layout <b>${esc(ef.l.name)}</b> (${ef.how}).` : 'Nenhum layout definido para esta tela: usa a lista de reprodução.'; })()}</div>
   <label class="f">Rotação da tela<select id="r">${rotOpts(s.rotation)}</select></label>
   <label class="f">Ajuste da mídia<select id="f">${FIT.map(([v, n]) => `<option value="${v}" ${(s.fit || 'contain') === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
-  <label class="f" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" id="s" ${s.sound ? 'checked' : ''} style="width:auto">Som nos vídeos</label>${tagPicker('screens', s.tags)}
+  <label class="f" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" id="s" ${s.sound ? 'checked' : ''} style="width:auto">Som nos vídeos</label>${trField(s.transition)}${tagPicker('screens', s.tags)}
   <div class="f">Horário de funcionamento<label style="flex-direction:row;align-items:center;gap:8px;display:flex"><input type="checkbox" id="hs" class="dk" ${s.schedule ? 'checked' : ''} onchange="$('#hbox').hidden=!this.checked">Definir horário (fora dele, a tela sem sinal não conta como problema)</label>
   <div id="hbox" ${s.schedule ? '' : 'hidden'}><div class="days">${DAYS.map((n, i) => `<label><input type="checkbox" class="dk dd" value="${i}" ${(s.schedule?.days || [1, 2, 3, 4, 5, 6, 0]).includes(i) ? 'checked' : ''}>${n}</label>`).join('')}</div>
   <input type="time" id="h1" value="${s.schedule?.start || '08:00'}"> até <input type="time" id="h2" value="${s.schedule?.end || '22:00'}"></div></div>
   <div class="acts"><button class="d l" onclick="delScreen('${id}')">Remover tela</button><button onclick="closeM()">Cancelar</button><button class="p" onclick="saveScreen('${id}')">Salvar</button></div>`);
 }
 const schedFromForm = () => { const days = [...document.querySelectorAll('.dd:checked')].map(x => +x.value); return $('#hs').checked && days.length ? { days, start: $('#h1').value || '08:00', end: $('#h2').value || '22:00' } : null; };
-const saveScreen = guard(async id => { await send('screens/' + id, 'PATCH', { name: $('#n').value, playlistId: $('#l').value, layoutId: $('#ly').value, rotation: +$('#r').value, fit: $('#f').value, sound: $('#s').checked, tags: pickedTags(), schedule: schedFromForm() }); closeM(); await load(); renderTbl('screens'); });
+const saveScreen = guard(async id => { await send('screens/' + id, 'PATCH', { name: $('#n').value, playlistId: $('#l').value, layoutId: $('#ly').value, rotation: +$('#r').value, fit: $('#f').value, sound: $('#s').checked, tags: pickedTags(), schedule: schedFromForm(), transition: trFromForm() }); closeM(); await load(); renderTbl('screens'); });
 let capTimer = null;
 function capture(id) {
   const s = S.screens.find(x => x.id === id);
@@ -600,7 +601,7 @@ const aL = (h, l) => `<a href="${h}" onclick="qClose()">${l}</a>`, aX = (fn, l) 
 const qul = a => '<ul>' + a.map(x => `<li>${x}</li>`).join('') + '</ul>';
 const eS = s => aX(`qGo('t','${s.id}')`, esc(s.name)), eF = m => aX(`qGo('f','${m.id}')`, esc(m.name)), eP = p => aX(`qGo('l','${p.id}')`, esc(p.name)), eL = l => aX(`qGo('z','${l.id}')`, esc(l.name));
 const zsum = z => z.content ? (z.content.type === 'file' ? ((media(z.content.mediaId) || {}).name || 'arquivo removido') : wsum(z.content.item)) : ((plOf(z.playlistId) || {}).name || 'sem lista');
-const sCont = s => { const l = lyOf(s.layoutId), p = plOf(s.playlistId); return l ? `layout de zonas ${eL(l)}` : p ? `lista ${eP(p)}` : 'nenhum conteúdo'; };
+const sCont = s => { const ef = effLayoutC(s), l = ef && ef.l, p = plOf(s.playlistId); return l ? `layout de zonas ${eL(l)} (${ef.how})` : p ? `lista ${eP(p)}` : 'nenhum conteúdo'; };
 const schTxt = s => s.schedule && s.schedule.days && s.schedule.days.length ? `${s.schedule.days.map(d => DIAS[d]).join(', ')}, das ${s.schedule.start} às ${s.schedule.end}` : 'sempre (sem horário definido)';
 const mediaUse = m => { const ls = S.playlists.filter(p => p.items.some(i => i.mediaId === m.id)), zs = []; (S.layouts || []).forEach(l => [['h', 'horizontal'], ['v', 'vertical']].forEach(([o, n]) => l[o].zones.forEach((z, i) => { if (z.content && z.content.type === 'file' && z.content.mediaId === m.id) zs.push([l, n, i + 1]); }))); return { ls, zs }; };
 const unusedMedia = () => S.media.filter(m => { const u = mediaUse(m); return !u.ls.length && !u.zs.length; });
@@ -610,9 +611,9 @@ const KB = [
   { k: ['instalar app', 'instalar o app', 'apk', 'app android', 'tv box', 'baixar o app', 'aplicativo', 'gerar o app'], a: () => `<b>App Android (TV Box ou celular)</b>${qul(['Gere o APK com <code>build-apk.sh</code> (ou pelo GitHub Actions) e instale no aparelho.', 'Na primeira abertura, digite o endereço do servidor (ex.: https://seudominio.duckdns.org).', 'Para trocar o servidor depois: aperte <b>Voltar 5 vezes</b> (ou a tecla Menu), digite o PIN e escolha trocar o servidor.', 'O app baixa tudo para o aparelho e continua tocando mesmo sem internet.'])}` },
   { k: ['enviar arquivo', 'enviar videos', 'enviar video', 'enviar imagens', 'como enviar', 'subir arquivo', 'upload', 'adicionar arquivo', 'formatos', 'formato de video', 'tamanho maximo', 'limite de tamanho', 'mp4'], a: () => `<b>Enviar arquivos</b>${qul([`Vá em ${aL('#/arquivos', 'Arquivos')} → <b>Adicionar arquivos</b> (aceita vários de uma vez).`, 'Formatos: JPG, PNG, GIF, WEBP (imagens) e MP4, WEBM, MOV, M4V (vídeos).', 'Limite de 1 GB por arquivo. Para TV Box, prefira <b>MP4 com H.264</b>, 1080p e bitrate moderado (4 a 6 Mbps).', 'Os vídeos tocam na duração real; para imagens você escolhe o tempo na lista.'])}` },
   { k: ['criar lista', 'nova lista', 'montar lista', 'lista de reproducao', 'playlist', 'adicionar na lista', 'ordem dos itens', 'reordenar', 'duracao da imagem', 'tempo da imagem'], a: () => `<b>Criar uma lista de reprodução</b>${qul([`${aL('#/listas/nova', 'Listas → Criar lista')}, dê um nome.`, 'Na galeria, clique nos arquivos para adicionar. Também há Relógio, Clima e Notícias.', 'Ajuste o tempo (segundos) de cada imagem e use as setas ↑ ↓ para mudar a ordem.', 'Clique em <b>Salvar lista</b>. Depois escolha a lista na configuração da tela.'])}` },
-  { k: ['zona', 'zonas', 'dividir a tela', 'dividir tela', 'varias areas', 'layout de zonas', 'editor de zonas', 'tela dividida', 'barra inferior'], a: () => `<b>Zonas (tela dividida)</b>${qul([`Vá em ${aL('#/zonas/novo', 'Zonas → Novo layout')}. Escolha um modelo (ex.: principal + lateral + faixa) ou use <b>+ Zona</b>.`, 'Arraste para mover e puxe o canto para redimensionar. Há um desenho <b>horizontal</b> e outro <b>vertical</b>.', 'Em cada zona escolha: <b>Lista de reprodução</b>, <b>Arquivo</b> (com zoom e posição) ou <b>Widget</b> (relógio, clima, notícias).', 'Salve e, em <b>Telas → editar</b>, escolha o “Layout de zonas”. A tela usa o desenho horizontal quando está deitada e o vertical quando está em pé.'])}` },
-  { k: ['arquivo direto na zona', 'arquivo na zona', 'zoom', 'posicao da imagem', 'redimensionar imagem', 'enquadrar'], a: () => `<b>Arquivo direto numa zona</b>${qul(['No editor de zonas, em <b>Conteúdo da zona</b> escolha <b>Arquivo</b> e selecione a mídia.', '<b>Zoom</b> aumenta ou reduz a mídia dentro da zona; <b>Posição</b> escolhe qual parte aparece (centro, topo, base…).', '<b>Ajuste</b> define se a mídia é contida, preenche (corta) ou estica. Imagem fica parada; vídeo repete sem parar.'])}` },
-  { k: ['clima', 'previsao do tempo', 'temperatura', 'widget de clima', 'tempo de hoje', 'open meteo'], a: () => `<b>Widget de clima</b>${qul(['Em uma lista: botão <b>Clima</b> na galeria. Em uma zona: Conteúdo = Widget → Clima → Configurar.', 'Busque a cidade e escolha o resultado; dá para mudar cores, fonte, tamanho do texto e ligar a previsão dos próximos dias.', 'Os dados vêm do Open-Meteo (gratuito para uso não comercial; pede crédito) e atualizam a cada 15 minutos. Sem internet, mostra o último valor.'])}` },
+  { k: ['zona', 'zonas', 'dividir a tela', 'dividir tela', 'varias areas', 'layout de zonas', 'editor de zonas', 'tela dividida', 'barra inferior'], a: () => `<b>Zonas (tela dividida)</b>${qul([`Vá em ${aL('#/zonas/novo', 'Zonas → Novo layout')}. Escolha um modelo (ex.: principal + lateral + faixa) ou use <b>+ Zona</b>.`, 'Defina a área de cada zona uma vez: arraste para mover e puxe o canto para redimensionar. Tudo que você colocar nela se ajusta sozinho. Os layouts são feitos no formato vertical.', 'Em cada zona escolha: <b>Lista de reprodução</b>, <b>Um arquivo</b> ou <b>Widget</b> (relógio, clima, notícias). A transição e o giro ficam em <b>Telas → Editar tela</b>.', 'Salve. Para usar em todas as telas, marque-o como <b>padrão</b> em <b>Zonas → Layout padrão e por etiqueta</b>. Se quiser um layout só para um grupo de telas, use uma etiqueta.'])}` },
+  { k: ['arquivo direto na zona', 'arquivo na zona', 'um arquivo na zona', 'mostrar um arquivo'], a: () => `<b>Um arquivo numa zona</b>${qul(['No editor de zonas, em <b>Mostra</b> escolha <b>Um arquivo</b> e selecione a mídia.', 'Você não precisa ajustar tamanho nem posição por arquivo: a mídia se ajusta sozinha ao tamanho da zona. Para mudar a forma como ela preenche a zona, use o Ajuste da mídia em <b>Telas → Editar tela</b>.', 'Imagem fica parada; vídeo repete sem parar.'])}` },
+  { k: ['transicao', 'transicoes', 'esmaecer', 'suave', 'fade', 'deslizar', 'slide', 'corte seco', 'mudanca seca', 'entre uma midia e outra', 'entre as midias', 'troca seca', 'mudar de uma para outra'], a: () => `<b>Transição entre mídias</b>${qul(['Configure em <b>Telas → Editar tela</b>, no campo Transição entre mídias. Vale para todas as mídias daquela tela, com ou sem zonas.', '<b>Esmaecer</b> (padrão, 0,6 s): uma mídia some enquanto a outra aparece. <b>Deslizar</b>: a nova entra pela direita. <b>Zoom suave</b>: a nova aparece com um leve zoom. <b>Nenhuma</b>: troca seca, sem efeito.', 'A duração vai de 0,1 a 3 segundos. Valores entre 0,4 e 0,8 s costumam ficar naturais.', 'Vale para imagens e vídeos. Relógio, clima e notícias atualizam no próprio lugar, sem transição.'])}` },  { k: ['clima', 'previsao do tempo', 'temperatura', 'widget de clima', 'tempo de hoje', 'open meteo'], a: () => `<b>Widget de clima</b>${qul(['Em uma lista: botão <b>Clima</b> na galeria. Em uma zona: Conteúdo = Widget → Clima → Configurar.', 'Busque a cidade e escolha o resultado; dá para mudar cores, fonte, tamanho do texto e ligar a previsão dos próximos dias.', 'Os dados vêm do Open-Meteo (gratuito para uso não comercial; pede crédito) e atualizam a cada 15 minutos. Sem internet, mostra o último valor.'])}` },
   { k: ['noticias', 'noticia', 'rss', 'feed', 'manchete', 'faixa rolando', 'ticker', 'g1', 'cnn'], a: () => `<b>Widget de notícias</b>${qul(['Em uma lista: botão <b>Notícias</b>. Em uma zona: Conteúdo = Widget → Notícias → Configurar.', 'Informe até 5 feeds RSS (há atalhos de CNN Brasil, Agência Brasil e G1) e use <b>Testar</b> para conferir.', 'Modo <b>faixa rolando</b> (barra inferior) ou <b>slides</b> (uma manchete por vez). Velocidade, cores, rótulo e tamanho são configuráveis.'])}` },
   { k: ['girar', 'rotacao', 'rotacionar', 'tela em pe', 'tv em pe', 'tela virada', 'orientacao', 'girar a tela'], a: () => `<b>Tela na vertical / girar</b>${qul(['Em <b>Telas → editar → Rotação</b> escolha 0°, 90°, 180° ou 270°.', 'TV montada em pé: use 90° ou 270° (conforme o lado). Layouts de zonas usam o desenho vertical quando a tela está em pé.'])}` },
   { k: ['horario de funcionamento', 'horario da tela', 'ligar e desligar', 'fora do horario', 'dias da semana', 'agendar'], a: () => `<b>Horário de funcionamento</b>${qul(['Em <b>Telas → editar</b> defina os dias e o intervalo de horas (aceita virar a meia-noite).', 'Fora do horário, a tela sem comunicação aparece em cinza e <b>não conta como problema</b>. A disponibilidade é calculada só dentro do horário.'])}` },
@@ -864,14 +865,33 @@ const ZTPL = { // modelos: [x, y, largura, altura] em fração da tela, para [ho
   sidebar: ['Principal + lateral + faixa', [[0, 0, .72, .88], [.72, 0, .28, .88], [0, .88, 1, .12]], [[0, 0, 1, .62], [0, .62, 1, .28], [0, .9, 1, .1]]],
   grid: ['Grade 2 × 2', Z4, Z4], top: ['Topo + principal + rodapé', ZT3, ZT3] };
 let ZE = null, ZD = null; // layout em edição e arrasto em andamento
-const lyOpts = sel => '<option value="">Sem zonas (usa a lista acima)</option>' + (S.layouts || []).map(l => `<option value="${l.id}" ${l.id === sel ? 'selected' : ''}>${esc(l.name)}</option>`).join('');
+const lyOpts = sel => { const c = sel == null ? '' : sel; return `<option value="" ${c === '' ? 'selected' : ''}>Automático (etiqueta ou padrão)</option><option value="none" ${c === 'none' ? 'selected' : ''}>Nenhum (usa só a lista)</option>` + (S.layouts || []).map(l => `<option value="${l.id}" ${l.id === c ? 'selected' : ''}>${esc(l.name)}</option>`).join(''); };
+// mesmo critério do servidor: tela > etiqueta > padrão
+function effLayoutC(s) {
+  if (s.layoutId === 'none') return null;
+  if (s.layoutId) { const l = lyOf(s.layoutId); if (l) return { l, how: 'escolhido nesta tela' }; }
+  for (const t of (s.tags || [])) { const lid = (S.tagLayouts || {})[t], l = lid && lyOf(lid); if (l) return { l, how: 'pela etiqueta ' + esc(((S.tags || []).find(x => x.id === t) || {}).name || '') }; }
+  const d = lyOf(S.defaultLayoutId); return d ? { l: d, how: 'layout padrão' } : null;
+}
 const zPct = (z, g) => `left:${z.x / g.cols * 100}%;top:${z.y / g.rows * 100}%;width:${z.w / g.cols * 100}%;height:${z.h / g.rows * 100}%`;
+function zConfigHtml() {
+  const L = S.layouts || [], tg = (S.tags || []).filter(t => t.scope === 'screens'), tl = S.tagLayouts || {};
+  const opts = (sel) => '<option value="">Nenhum</option>' + L.map(l => `<option value="${l.id}" ${l.id === sel ? 'selected' : ''}>${esc(l.name)}</option>`).join('');
+  return `<div class="card"><div class="ph"><h1>Layout padrão e por etiqueta</h1><button class="p" onclick="zCfgSave()">Salvar</button></div>
+  <p class="mut" style="margin-top:0;font-size:13px">Todas as telas usam o <b>layout padrão</b>. Se uma tela tiver uma etiqueta com layout próprio, ela usa esse. Um layout escolhido direto na tela vale mais que tudo.</p>
+  <label class="f">Layout padrão (todas as telas)<select id="zdef">${opts(S.defaultLayoutId || '')}</select></label>
+  ${tg.length ? `<div class="tw" style="margin-top:10px"><table><thead><tr><th>Etiqueta de tela</th><th>Layout desta etiqueta</th><th>Telas</th></tr></thead><tbody>${tg.map(t => `<tr><td>${esc(t.name)}</td><td><select data-tag="${t.id}">${opts(tl[t.id] || '').replace('<option value="">Nenhum</option>', '<option value="">(usa o padrão)</option>')}</select></td><td>${S.screens.filter(x => (x.tags || []).includes(t.id)).length}</td></tr>`).join('')}</tbody></table></div>` : '<p class="mut sm" style="margin-top:10px">Crie etiquetas de telas (em Telas) para definir um layout por grupo, como “Academia”.</p>'}</div>`;
+}
+const zCfgSave = guard(async () => {
+  const tl = {}; document.querySelectorAll('select[data-tag]').forEach(x => { if (x.value) tl[x.dataset.tag] = x.value; });
+  await send('layout-settings', 'POST', { defaultLayoutId: $('#zdef').value, tagLayouts: tl }); await load(); pZonas(); toast('Layout padrão e etiquetas salvos');
+});
 function pZonas() {
   const L = S.layouts || [], use = id => S.screens.filter(s => s.layoutId === id).length;
   const mini = (g, v) => `<div class="zmini ${v ? 'v' : ''}">${g.zones.map((z, i) => `<i style="${zPct(z, g)};background:${ZCOL[i % ZCOL.length]}99"></i>`).join('')}</div>`;
-  $('#page').innerHTML = `<div class="card"><div class="ph"><h1>Zonas</h1><button class="p" onclick="location.hash='#/zonas/novo'">+ Novo layout</button></div>
+  $('#page').innerHTML = zConfigHtml() + `<div class="card"><div class="ph"><h1>Zonas</h1><button class="p" onclick="location.hash='#/zonas/novo'">+ Novo layout</button></div>
   <p class="mut" style="margin-top:0">Divida a tela em áreas independentes, cada uma tocando a sua própria lista. Depois escolha o layout na configuração da tela.</p>
-  ${L.length ? `<div class="tw"><table><thead><tr><th>Prévia</th><th>Nome</th><th>Zonas (horiz. / vert.)</th><th>Telas usando</th><th></th></tr></thead><tbody>${L.map(l => `<tr><td><div style="display:flex;gap:8px;align-items:flex-end">${mini(l.h)}${mini(l.v, 1)}</div></td><td>${esc(l.name)}</td><td>${l.h.zones.length} / ${l.v.zones.length}</td><td>${use(l.id)}</td>
+  ${L.length ? `<div class="tw"><table><thead><tr><th>Prévia</th><th>Nome</th><th>Zonas</th><th>Telas usando</th><th></th></tr></thead><tbody>${L.map(l => `<tr><td>${mini(l.v, 1)}</td><td>${esc(l.name)}</td><td>${l.v.zones.length}</td><td>${use(l.id)}</td>
     <td style="text-align:right;white-space:nowrap"><button onclick="location.hash='#/zonas/${l.id}'">Editar</button> <button onclick="zDup('${l.id}')">Duplicar</button> <button class="d" onclick="zRemove('${l.id}')">Remover</button></td></tr>`).join('')}</tbody></table></div>` : '<p class="mut">Nenhum layout ainda. Clique em "Novo layout".</p>'}</div>`;
 }
 const zDup = guard(async id => { const l = S.layouts.find(x => x.id === id); await send('layouts', 'POST', { ...l, id: undefined, name: l.name + ' (cópia)' }); await load(); pZonas(); });
@@ -893,34 +913,35 @@ const zHtml = (o, i) => { const g = ZE[o], z = g.zones[i], c = ZCOL[i % ZCOL.len
   const th = md ? (md.type === 'image' ? `<img class="zth" src="/media/${md.file}" ${st}>` : `<video class="zth" muted preload="metadata" src="/media/${md.file}#t=0.3" ${st}></video>`) : '';
   return `<div class="zn" data-o="${o}" data-i="${i}" style="${zPct(z, g)};border-color:${c};background:${c}55">${th}<b>Zona ${i + 1}</b><span class="lb2 ${good ? '' : 'no'}">${esc(lab)}</span><span class="lb">${Math.round(z.w / g.cols * 100)}% × ${Math.round(z.h / g.rows * 100)}%</span><span class="x" data-act="del">×</span><span class="rs" data-act="rs"></span></div>`; };
 function zDraw() {
-  const pane = o => { const g = ZE[o], H = o === 'h';
-    return `<div class="zp"><div class="tb" style="margin-bottom:8px"><b>${H ? 'Horizontal' : 'Vertical'}</b>
-      <label>Grade <input type="number" min="4" max="48" value="${g.cols}" style="width:58px" onchange="zGrid('${o}','cols',this.value)"> × <input type="number" min="4" max="48" value="${g.rows}" style="width:58px" onchange="zGrid('${o}','rows',this.value)"></label>
-      <select onchange="if(this.value)zApply('${o}',this.value)"><option value="">Modelos…</option>${Object.entries(ZTPL).map(([k, t]) => `<option value="${k}">${t[0]}</option>`).join('')}</select><button onclick="zAdd('${o}')">+ Zona</button></div>
-      <div class="zc" data-o="${o}" onpointerdown="zDown(event)" onpointermove="zMove(event)" onpointerup="zUp(event)" onpointercancel="zUp(event)" style="width:${H ? 'min(100%,560px)' : 'min(100%,230px)'};aspect-ratio:${H ? '16/9' : '9/16'};background-size:${100 / g.cols}% ${100 / g.rows}%">${g.zones.map((_, i) => zHtml(o, i)).join('')}</div>
-      <div style="margin-top:8px">${g.zones.map((z, i) => zRow(o, i, z)).join('') || '<p class="mut">Sem zonas: esta orientação ficará preta. Use um modelo ou "+ Zona".</p>'}</div></div>`; };
+  const g = ZE.v, ZW = 'width:min(100%,380px);aspect-ratio:9/16;background-size:' + (100 / g.cols) + '% ' + (100 / g.rows) + '%';
   $('#page').innerHTML = `<div class="card"><div class="ph"><h1>Editor de zonas</h1><button onclick="location.hash='#/zonas'">Voltar</button><button class="p" onclick="zSave()">Salvar</button></div>
   <label class="f">Nome do layout<input id="zn" value="${esc(ZE.name)}" onchange="ZE.name=this.value"></label>
-  <p class="mut" style="font-size:13px">Arraste para mover e puxe o canto para redimensionar. Cada orientação tem o seu desenho: a tela usa o horizontal quando está deitada e o vertical quando está em pé (já considerando a rotação configurada na tela). A lista de cada zona toca de forma independente; só a maior zona toca o som dos vídeos.</p>
-  <div class="zgrid">${pane('h')}${pane('v')}</div></div>`;
+  <label class="f">Lista de fundo (ocupa a tela toda; as zonas ficam por cima)<select id="zbg">${plOpts(ZE.bg || '')}</select></label>
+  <p class="mut" style="font-size:13px">Defina a área de cada zona <b>uma vez</b>: arraste para mover e puxe o canto para redimensionar. Depois escolha o que cada zona mostra. Tudo que você colocar nela se ajusta ao tamanho da zona automaticamente. A transição entre mídias e o giro da tela ficam em <b>Telas → Editar tela</b>.</p>
+  <div class="zgrid"><div class="zp" style="flex:1 1 320px;max-width:560px"><div class="tb" style="margin-bottom:8px">
+    <label>Grade <input type="number" min="4" max="48" value="${g.cols}" style="width:58px" onchange="zGrid('v','cols',this.value)"> × <input type="number" min="4" max="48" value="${g.rows}" style="width:58px" onchange="zGrid('v','rows',this.value)"></label>
+    <select onchange="if(this.value)zApply('v',this.value)"><option value="">Modelos…</option>${Object.entries(ZTPL).map(([k, t]) => `<option value="${k}">${t[0]}</option>`).join('')}</select><button onclick="zAdd('v')">+ Zona</button></div>
+    <div class="zc" data-o="v" onpointerdown="zDown(event)" onpointermove="zMove(event)" onpointerup="zUp(event)" onpointercancel="zUp(event)" style="${ZW}">${g.zones.map((_, i) => zHtml('v', i)).join('')}</div>
+    <div style="margin-top:8px">${g.zones.map((z, i) => zRow('v', i, z)).join('') || '<p class="mut">Sem zonas. Use um modelo ou "+ Zona".</p>'}</div></div></div></div>`;
 }
-const POS = [['50,50', 'Centro'], ['50,0', 'Topo'], ['50,100', 'Base'], ['0,50', 'Esquerda'], ['100,50', 'Direita'], ['0,0', 'Topo à esquerda'], ['100,0', 'Topo à direita'], ['0,100', 'Base à esquerda'], ['100,100', 'Base à direita']];
 const wsum = it => it.kind === 'clock' ? 'Relógio e data' : it.kind === 'weather' ? 'Clima — ' + (it.cfg.city || '?') : 'Notícias (' + (it.cfg.mode === 'slides' ? 'slides' : 'faixa rolando') + ')';
-function zRow(o, i, z) { // uma zona: o que mostra (lista, arquivo ou widget), giro e ajuste
-  const c = z.content, t = c ? c.type : 'list', col = ZCOL[i % ZCOL.length], so = (v, n, cur) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${n}</option>`; let mid = '', ext = '';
-  if (t === 'list') mid = `<select onchange="zSet('${o}',${i},'playlistId',this.value)">${plOpts(z.playlistId)}</select>`;
-  else if (t === 'file') { const fl = S.media;
-    mid = `<select onchange="zFile('${o}',${i},this.value)">${fl.map(m => `<option value="${m.id}" ${m.id === c.mediaId ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}${fl.some(m => m.id === c.mediaId) ? '' : `<option value="" selected>(arquivo removido)</option>`}</select>`;
-    ext = `<div class="zx"><label>Zoom <input type="number" min="20" max="400" step="10" value="${c.zoom}" style="width:72px" onchange="zView('${o}',${i},'zoom',this.value)"> %</label><label>Posição <select onchange="zView('${o}',${i},'pos',this.value)">${POS.map(([v, n]) => so(v, n, c.ax + ',' + c.ay)).join('')}</select></label><span class="mut">Imagem: fica parada. Vídeo: repete sem parar.</span></div>`; }
-  else { const k = c.item.kind; mid = `<select onchange="zWid('${o}',${i},this.value)">${so('clock', 'Relógio e data', k)}${so('weather', 'Clima', k)}${so('news', 'Notícias', k)}</select>${k !== 'clock' ? `<button onclick="zWidCfg('${o}',${i})">Configurar</button>` : ''}`; ext = `<div class="zx mut">${esc(wsum(c.item))}</div>`; }
-  return `<div class="zrow2"><div class="zr1"><i style="background:${col}"></i><b>Zona ${i + 1}</b><select title="O que esta zona mostra" onchange="zType('${o}',${i},this.value)">${so('list', 'Lista de reprodução', t)}${so('file', 'Arquivo', t)}${so('widget', 'Widget', t)}</select>${mid}<select title="Girar o conteúdo desta zona" onchange="zSet('${o}',${i},'rot',this.value)">${rotOpts(z.rot)}</select><select title="Ajuste da mídia na zona" onchange="zSet('${o}',${i},'fit',this.value)"><option value="">Ajuste da tela</option>${FIT.map(([v, n]) => `<option value="${v}" ${z.fit === v ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="d" onclick="zDel('${o}',${i})">Remover</button></div>${ext}</div>`;
+const TR = [['none', 'Nenhuma (corte seco)'], ['fade', 'Esmaecer (suave)'], ['slide', 'Deslizar'], ['zoom', 'Zoom suave']];
+function zRow(o, i, z) { // uma zona: o que mostra. Tamanho e posição já estão no desenho.
+  const c = z.content, t = c ? c.type : 'list', col = ZCOL[i % ZCOL.length], so = (v, n, cur) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${n}</option>`;
+  let pick = '';
+  if (t === 'list') pick = `<select onchange="zSet('${o}',${i},'playlistId',this.value)">${plOpts(z.playlistId)}</select>`;
+  else if (t === 'file') pick = `<select onchange="zFile('${o}',${i},this.value)">${S.media.map(m => `<option value="${m.id}" ${m.id === c.mediaId ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}${S.media.some(m => m.id === c.mediaId) ? '' : '<option value="" selected>(arquivo removido)</option>'}</select>`;
+  else { const k = c.item.kind; pick = `<select onchange="zWid('${o}',${i},this.value)">${so('clock', 'Relógio e data', k)}${so('weather', 'Clima', k)}${so('news', 'Notícias', k)}</select>${k !== 'clock' ? `<button onclick="zWidCfg('${o}',${i})">Configurar</button>` : ''}`; }
+  return `<div class="zrow2"><div class="zr1"><i style="background:${col}"></i><b>Zona ${i + 1}</b><select title="O que esta zona mostra" onchange="zType('${o}',${i},this.value)">${so('list', 'Lista de reprodução', t)}${so('file', 'Um arquivo', t)}${so('widget', 'Widget', t)}</select>${pick}<button class="d" onclick="zDel('${o}',${i})">Remover</button></div></div>`;
 }
-function zType(o, i, t) { ZE[o].zones[i].content = t === 'list' ? null : t === 'file' ? { type: 'file', mediaId: (S.media[0] || {}).id || '', zoom: 100, ax: 50, ay: 50 } : { type: 'widget', item: { kind: 'clock', seconds: 15 } }; zLater(); }
+function zType(o, i, t) { ZE[o].zones[i].content = t === 'list' ? null : t === 'file' ? { type: 'file', mediaId: (S.media[0] || {}).id || '' } : { type: 'widget', item: { kind: 'clock', seconds: 15 } }; zLater(); }
 const zLater = () => setTimeout(zDraw, 0); // redesenha depois do evento (evita erro do navegador ao trocar o campo em foco)
 const zFile = (o, i, v) => { ZE[o].zones[i].content.mediaId = v; zLater(); };
-function zView(o, i, k, v) { const c = ZE[o].zones[i].content; if (k === 'pos') { const p = v.split(',').map(Number); c.ax = p[0]; c.ay = p[1]; } else c.zoom = Math.max(20, Math.min(400, +v || 100)); zLater(); }
 function zWid(o, i, k) { const z = ZE[o].zones[i]; if (z.content.item.kind === k) return; z.content.item = k === 'clock' ? { kind: 'clock', seconds: 15 } : { kind: k, seconds: 15, cfg: JSON.parse(JSON.stringify(WDEF[k])) }; zLater(); if (k !== 'clock') setTimeout(() => zWidCfg(o, i), 10); }
 function zWidCfg(o, i) { const it = ZE[o].zones[i].content.item; WM = { zone: { o, i }, id: '', k: -1, kind: it.kind, seconds: it.seconds, cfg: { ...WDEF[it.kind], ...JSON.parse(JSON.stringify(it.cfg || {})) }, res: [] }; wOpen(); }
+const TRF = () => ({ type: 'fade', ms: 600 });
+function trField(cur) { cur = cur || TRF(); return `<div class="f">Transição entre mídias (para telas sem zonas)<div class="tb" style="margin:0"><select id="ttp">${TR.map(([v, n]) => `<option value="${v}" ${cur.type === v ? 'selected' : ''}>${n}</option>`).join('')}</select><label>Duração <input type="number" id="ttms" min="0.1" max="3" step="0.1" value="${((cur.ms || 600) / 1000).toFixed(1)}" style="width:72px"> s</label></div></div>`; }
+const trFromForm = () => ({ type: $('#ttp').value, ms: Math.round(Math.min(3, Math.max(0.1, +$('#ttms').value || 0.6)) * 1000) });
 const zSet = (o, i, k, v) => { ZE[o].zones[i][k] = k === 'rot' ? +v : v; if (k === 'playlistId') zLater(); };
 function zAdd(o) { const g = ZE[o]; if (g.zones.length >= 20) return toast('Máximo de 20 zonas'); const w = Math.max(1, Math.round(g.cols / 3)), h = Math.max(1, Math.round(g.rows / 3)), n = g.zones.length % 4;
   g.zones.push({ x: Math.min(g.cols - w, Math.floor((g.cols - w) / 2) + n), y: Math.min(g.rows - h, Math.floor((g.rows - h) / 2) + n), w, h, playlistId: null, rot: 0, fit: '' }); zDraw(); }
@@ -944,7 +965,7 @@ function zMove(e) {
 }
 const zUp = () => { ZD = null; };
 const zSave = guard(async () => {
-  ZE.name = $('#zn').value.trim() || 'Layout sem nome'; const r = await send('layouts', 'POST', ZE); await load(); const nl = [ZE.h, ZE.v].reduce((a, g) => a + g.zones.filter(z => !z.playlistId && !z.content).length, 0); toast(nl ? `Layout salvo. Atenção: ${nl} zona(s) sem lista ficam pretas.` : 'Layout salvo');
+  ZE.name = $('#zn').value.trim() || 'Layout sem nome'; ZE.bg = $('#zbg') ? ($('#zbg').value || null) : (ZE.bg || null); ZE.h = JSON.parse(JSON.stringify(ZE.v)); ZE.v.zones.forEach(z => delete z.tr); const r = await send('layouts', 'POST', ZE); await load(); const nl = [ZE.h, ZE.v].reduce((a, g) => a + g.zones.filter(z => !z.playlistId && !z.content).length, 0); toast(nl ? `Layout salvo. Atenção: ${nl} zona(s) sem lista ficam pretas.` : 'Layout salvo');
   if (!ZE.id) location.hash = '#/zonas/' + r.id; else { ZE = JSON.parse(JSON.stringify(S.layouts.find(l => l.id === ZE.id) || ZE)); zDraw(); }
 });
 
