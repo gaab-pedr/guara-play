@@ -49,7 +49,7 @@ function sampleHist() {
   if (!h || h.t !== t) st.hist.push({ t, on, tot: scs.length, e: exp.length, o }); else { h.on = Math.min(h.on, on); h.o = Math.min(h.o, o); h.tot = scs.length; h.e = exp.length; }
   if (st.hist.length > 2300) st.hist.splice(0, st.hist.length - 2300); sdirty = true;
 }
-setTimeout(() => { sampleHist(); setInterval(sampleHist, 60000).unref(); }, 30000).unref();
+setTimeout(() => { sampleHist(); setInterval(sampleHist, 60000).unref(); }, 2000).unref();
 const flushStats = () => { if (!sdirty) return; try { fs.writeFileSync(STATS + '.tmp', JSON.stringify(st)); fs.renameSync(STATS + '.tmp', STATS); sdirty = false; } catch (e) { console.error('Falha ao salvar stats:', e.message); } };
 setInterval(flushStats, 30000).unref();
 for (const sg of ['SIGINT', 'SIGTERM']) process.on(sg, () => { flushStats(); process.exit(0); });
@@ -62,8 +62,16 @@ const vg = g => { const cols = Math.min(48, Math.max(4, parseInt(g?.cols) || 24)
   const zones = (Array.isArray(g?.zones) ? g.zones : []).slice(0, 20).map(z => {
     const x = Math.min(cols - 1, Math.max(0, parseInt(z.x) || 0)), y = Math.min(rows - 1, Math.max(0, parseInt(z.y) || 0));
     return { id: /^\w{1,20}$/.test(z.id || '') ? z.id : rid(), x, y, w: Math.min(cols - x, Math.max(1, parseInt(z.w) || 1)), h: Math.min(rows - y, Math.max(1, parseInt(z.h) || 1)),
-      playlistId: z.playlistId || null, rot: [0, 90, 180, 270].includes(+z.rot) ? +z.rot : 0, fit: ['contain', 'cover', 'fill'].includes(z.fit) ? z.fit : '' }; });
+      playlistId: z.playlistId || null, content: vc(z.content), rot: [0, 90, 180, 270].includes(+z.rot) ? +z.rot : 0, fit: ['contain', 'cover', 'fill'].includes(z.fit) ? z.fit : '' }; });
   return { cols, rows, zones }; };
+// conteúdo direto da zona: um arquivo (com zoom e posição) ou um widget, sem precisar de lista
+const vc = c => { if (!c || typeof c !== 'object') return null;
+  if (c.type === 'file') return { type: 'file', mediaId: String(c.mediaId || '').slice(0, 40), zoom: vnum(c.zoom, 20, 400, 100), ax: vnum(c.ax, 0, 100, 50), ay: vnum(c.ay, 0, 100, 50) };
+  if (c.type === 'widget' && c.item) { const k = c.item.kind, seconds = Math.max(1, Math.round(vnum(c.item.seconds, 1, 3600, 15)));
+    if (k === 'clock') return { type: 'widget', item: { kind: 'clock', seconds } };
+    if (k === 'weather') return { type: 'widget', item: { kind: 'weather', seconds, cfg: vWeather(c.item.cfg) } };
+    if (k === 'news') return { type: 'widget', item: { kind: 'news', seconds, cfg: vNews(c.item.cfg) } }; }
+  return null; };
 const clean = b => { const o = {};
   if ('rotation' in b) o.rotation = [0, 90, 180, 270].includes(+b.rotation) ? +b.rotation : 0;
   if ('fit' in b) o.fit = ['contain', 'cover', 'fill'].includes(b.fit) ? b.fit : 'contain';
@@ -90,8 +98,8 @@ const vNews = c => ({ ...wStyle(c || {}, { bg: '#111111', color: '#ffffff', acce
   count: Math.round(vnum(c?.count, 3, 30, 10)), mode: c?.mode === 'slides' ? 'slides' : 'ticker', speed: vnum(c?.speed, 20, 200, 70), interval: vnum(c?.interval, 3, 60, 8), label: String(c?.label ?? 'NOTÍCIAS').slice(0, 24) });
 const wkOf = i => crypto.createHash('sha1').update(i.kind + JSON.stringify(i.kind === 'weather' ? [i.cfg.lat, i.cfg.lon] : [i.cfg.feeds, i.cfg.count])).digest('hex').slice(0, 12);
 const screenWidgets = sc => { const ids = new Set([sc.playlistId]), l = sc.layoutId && db.layouts.find(x => x.id === sc.layoutId);
-  if (l) [l.h, l.v].forEach(g => g.zones.forEach(z => ids.add(z.playlistId)));
-  return db.playlists.filter(x => ids.has(x.id)).flatMap(x => x.items.filter(i => i.kind === 'weather' || i.kind === 'news')); };
+  const inline = []; if (l) [l.h, l.v].forEach(g => g.zones.forEach(z => { ids.add(z.playlistId); if (z.content && z.content.type === 'widget' && z.content.item.kind !== 'clock') inline.push(z.content.item); }));
+  return db.playlists.filter(x => ids.has(x.id)).flatMap(x => x.items.filter(i => i.kind === 'weather' || i.kind === 'news')).concat(inline); };
 const wCache = new Map(), wBusy = new Map();
 function cached(key, ttl, fn) { // cache em memória; se a busca falhar, entrega o último valor bom (marcado como antigo)
   const c = wCache.get(key); if (c && Date.now() - c.at < ttl) return Promise.resolve(c);
@@ -174,7 +182,8 @@ function manifest(dev, plat) {
   const man = { paired: true, name: s.name, rotation: s.rotation || 0, fit: s.fit || 'contain', sound: !!s.sound, items: mapItems(db.playlists.find(p => p.id === s.playlistId)) };
   const lay = s.layoutId && db.layouts.find(l => l.id === s.layoutId);
   if (lay) { // tela com zonas: usa o desenho da orientação da tela, em porcentagem
-    const pc = n => Math.round(n * 10000) / 100, mk = g => g.zones.map(z => ({ x: pc(z.x / g.cols), y: pc(z.y / g.rows), w: pc(z.w / g.cols), h: pc(z.h / g.rows), rot: z.rot, fit: z.fit, items: mapItems(db.playlists.find(p => p.id === z.playlistId)) }));
+    const zItems = z => !z.content ? mapItems(db.playlists.find(p => p.id === z.playlistId)) : z.content.type === 'file' ? mapItems({ items: [{ kind: 'media', mediaId: z.content.mediaId, seconds: 10 }] }) : mapItems({ items: [z.content.item] });
+    const pc = n => Math.round(n * 10000) / 100, mk = g => g.zones.map(z => ({ x: pc(z.x / g.cols), y: pc(z.y / g.rows), w: pc(z.w / g.cols), h: pc(z.h / g.rows), rot: z.rot, fit: z.fit, view: z.content && z.content.type === 'file' ? { zoom: z.content.zoom, ax: z.content.ax, ay: z.content.ay } : null, items: zItems(z) }));
     man.zh = mk(lay.h); man.zv = mk(lay.v); // o player escolhe pelo formato real da tela (em pé ou deitada)
     man.zones = (s.rotation || 0) % 180 ? man.zv : man.zh;
     const seen = new Set(); // 'items' leva a união de tudo: apps antigos só baixam o que está em 'items'

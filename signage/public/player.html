@@ -3,13 +3,13 @@
 <title>Player</title>
 <style>
 html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,sans-serif;overflow:hidden;cursor:none}
-#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center}
+#stage{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;text-align:center}
 [data-rot="180"] #stage{transform:rotate(180deg)}
-[data-rot="90"] #stage{inset:auto;top:0;left:100vw;width:100vh;height:100vw;transform-origin:0 0;transform:rotate(90deg)}
-[data-rot="270"] #stage{inset:auto;top:100vh;left:0;width:100vh;height:100vw;transform-origin:0 0;transform:rotate(-90deg)}
+[data-rot="90"] #stage{right:auto;bottom:auto;top:0;left:100vw;width:100vh;height:100vw;transform-origin:0 0;transform:rotate(90deg)}
+[data-rot="270"] #stage{right:auto;bottom:auto;top:100vh;left:0;width:100vh;height:100vw;transform-origin:0 0;transform:rotate(-90deg)}
 #stage img,#stage video{width:100%;height:100%;object-fit:var(--fit,contain)}
-.big{font-size:min(18vw,18vh);font-weight:700;letter-spacing:.08em;font-variant-numeric:tabular-nums}
-.sub{font-size:min(4vw,4vh);opacity:.7;margin-top:1vh}
+.big{font-size:12vmin;font-size:min(18vw,18vh);font-weight:700;letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.sub{font-size:3vmin;font-size:min(4vw,4vh);opacity:.7;margin-top:1vh}
 .w{width:100%;height:100%;display:flex;overflow:hidden;box-sizing:border-box}
 .f-sans{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}.f-serif{font-family:Georgia,"Times New Roman",serif}.f-mono{font-family:ui-monospace,Menlo,Consolas,monospace}.f-cond{font-family:"Arial Narrow","Roboto Condensed",Arial,sans-serif;font-stretch:condensed}
 @keyframes tkr{from{transform:translateX(0)}to{transform:translateX(-50%)}}
@@ -17,206 +17,256 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,
 </style></head><body>
 <div id="stage"></div>
 <script>
-const NATIVE = new URLSearchParams(location.search).has('native'); // rodando dentro do app Android
-const $ = s => document.querySelector(s), wait = ms => new Promise(r => setTimeout(r, ms));
+// Escrito em JavaScript simples (sem ?. ?? ||= catch{} etc.) para funcionar em WebView antigo de TV Box.
+var NATIVE = new URLSearchParams(location.search).has('native'); // rodando dentro do app Android
+var $ = function (s) { return document.querySelector(s); }, wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
 // crypto.randomUUID e a Cache API só existem em HTTPS/localhost; em http://IP-da-rede usamos alternativas.
-const uid = () => crypto.randomUUID ? crypto.randomUUID() : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+var uid = function () { return crypto.randomUUID ? crypto.randomUUID() : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, function (c) { return (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16); }); };
+var jget = function (k, d) { try { return JSON.parse(localStorage[k]) || d; } catch (e) { return d; } };
 // Enquanto a tela não estiver pareada, cada abertura gera uma identidade (e um código) novos.
 // Depois de pareada, a identidade fica salva para a tela voltar sozinha após reiniciar.
 if (localStorage.paired !== '1') { localStorage.dev = uid(); localStorage.removeItem('man'); }
-let dev = localStorage.dev;
-const PLAT = /Android/i.test(navigator.userAgent) ? 'Android' : /Windows/i.test(navigator.userAgent) ? 'Windows' : /iPhone|iPad|Macintosh/i.test(navigator.userAgent) ? 'Apple' : 'Outro';
-let man = JSON.parse(localStorage.man || 'null'), cur = '', run = 0, stop = () => {};
-const stage = $('#stage');
-const msg = (a, b = '') => stage.innerHTML = `<div><div class="big">${a}</div><div class="sub">${b}</div></div>`;
+var dev = localStorage.dev;
+var PLAT = /Android/i.test(navigator.userAgent) ? 'Android' : /Windows/i.test(navigator.userAgent) ? 'Windows' : /iPhone|iPad|Macintosh/i.test(navigator.userAgent) ? 'Apple' : 'Outro';
+var man = jget('man', null), cur = '', run = 0, stop = function () {}, capBusy = false, zs = [];
+var stage = $('#stage');
+var hx = function (t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+var msg = function (a, b) { stage.innerHTML = '<div><div class="big">' + a + '</div><div class="sub">' + (b || '') + '</div></div>'; };
 
-if ('serviceWorker' in navigator && !NATIVE) navigator.serviceWorker.register('/sw.js').catch(() => {});
-addEventListener('click', () => document.documentElement.requestFullscreen?.().catch(() => {}));
-navigator.wakeLock?.request('screen').catch(() => {});
+if ('serviceWorker' in navigator && !NATIVE) navigator.serviceWorker.register('/sw.js').catch(function () {});
+addEventListener('click', function () { var d = document.documentElement; if (d.requestFullscreen) { var p = d.requestFullscreen(); if (p && p.catch) p.catch(function () {}); } });
+if (navigator.wakeLock && navigator.wakeLock.request) navigator.wakeLock.request('screen').catch(function () {});
 
 // Baixa a mídia uma vez e guarda no cache do aparelho (funciona offline).
 async function fetchBlob(url) {
-  if (!self.caches) { const r = await fetch(url); if (!r.ok) throw 0; return r.blob(); }
-  const c = await caches.open('media');
-  let r = await c.match(url);
-  if (!r) { r = await fetch(url); if (!r.ok) throw 0; await c.put(url, r.clone()); }
+  if (!self.caches) { var r0 = await fetch(url); if (!r0.ok) throw new Error('http'); return r0.blob(); }
+  var c = await caches.open('media'), r = await c.match(url);
+  if (!r) { r = await fetch(url); if (!r.ok) throw new Error('http'); await c.put(url, r.clone()); }
   return r.blob();
 }
 async function prefetch(items) {
   if (!self.caches || NATIVE) return; // no app, o próprio aparelho já baixa tudo antes
-  const urls = items.filter(i => i.url).map(i => i.url), c = await caches.open('media');
-  for (const k of await c.keys()) if (!urls.includes(new URL(k.url).pathname)) c.delete(k);
-  for (const u of urls) { try { await fetchBlob(u); } catch {} }
+  var urls = items.filter(function (i) { return i.url; }).map(function (i) { return i.url; }), c = await caches.open('media'), ks = await c.keys();
+  for (var k of ks) if (urls.indexOf(new URL(k.url).pathname) < 0) c.delete(k);
+  for (var u of urls) { try { await fetchBlob(u); } catch (e) {} }
 }
 
 async function poll() {
-  try { const r = await fetch('/api/player?device=' + dev + '&p=' + PLAT, { cache: 'no-store' }); man = await r.json(); localStorage.man = JSON.stringify(man); if (man.capture) doCapture(); } catch {}
+  try { var r = await fetch('/api/player?device=' + dev + '&p=' + PLAT, { cache: 'no-store' }); man = await r.json(); localStorage.man = JSON.stringify(man); if (man.capture) doCapture(); } catch (e) {}
   apply();
 }
 function apply() {
   if (!man || man.connecting) {
     cur = ''; run++; stop();
-    const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-    return msg('Conectando…', man && man.error ? 'Sem conexão com ' + esc(man.server || '') + '<br>' + esc(man.error) : 'Aguardando o servidor');
+    return msg('Conectando…', man && man.error ? 'Sem conexão com ' + hx(man.server || '') + '<br>' + hx(man.error) : 'Aguardando o servidor');
   }
   if (man.downloading) { run++; stop(); cur = ''; return msg('Baixando conteúdo…', man.downloading); }
   if (man.paired) localStorage.paired = '1';
   else if (localStorage.paired === '1') { // tela removida no painel: volta a pedir pareamento com código novo
     localStorage.paired = ''; localStorage.dev = dev = uid(); localStorage.removeItem('man'); return poll();
   }
-  if (!man.paired) { cur = ''; run++; stop(); self.caches?.delete('media'); return msg(man.code, 'Digite este código no painel para parear a tela'); }
+  if (!man.paired) { cur = ''; run++; stop(); if (self.caches) caches.delete('media'); return msg(man.code, 'Digite este código no painel para parear a tela'); }
   if (man.version === cur) return;
   cur = man.version; run++; stop();
   document.body.dataset.rot = man.rotation || 0; document.body.style.setProperty('--fit', man.fit || 'contain');
-  prefetch(man.zones ? man.zones.flatMap(z => z.items) : man.items); build(run);
+  prefetch(man.items || []); build(run);
 }
 
-// Cada zona tem a sua própria lista, tocando de forma independente. Sem zonas, é uma zona única em tela cheia.
-let zs = [];
-stop = () => zs.forEach(z => z.stop());
+// ---- zonas: cada zona tem a sua própria lista, tocando de forma independente ----
+// O desenho (horizontal ou vertical) é escolhido pelo formato REAL da tela já com a rotação aplicada.
+function pickZones() {
+  if (!man.zh && !man.zv) return man.zones || null;
+  var v = (+man.rotation || 0) % 180 !== 0, w = v ? innerHeight : innerWidth, h = v ? innerWidth : innerHeight;
+  return h > w ? (man.zv || man.zh) : (man.zh || man.zv);
+}
+var relz = function (z) { if (z.rel) { try { z.rel(); } catch (e) {} z.rel = null; } }; // solta o vídeo anterior (libera o decodificador)
+stop = function () { zs.forEach(function (z) { z.stop(); }); };
 function build(id) {
-  const zones = man.zones || [{ x: 0, y: 0, w: 100, h: 100, rot: 0, fit: '', items: man.items, full: true }];
-  const big = zones.reduce((b, d, i) => d.w * d.h > zones[b].w * zones[b].h ? i : b, 0); // só a maior zona toca som
-  stage.replaceChildren(); zs = [];
-  zones.forEach((zd, i) => {
-    const host = document.createElement('div'), el = document.createElement('div'); host.className = 'z'; el.className = 'zi';
-    host.style.cssText = `left:${zd.x}%;top:${zd.y}%;width:${zd.w}%;height:${zd.h}%`; if (zd.fit) host.style.setProperty('--fit', zd.fit);
-    host.appendChild(el); stage.appendChild(host); zs.push({ stop: () => {}, el, host, zd, audio: i === big });
+  var zones = pickZones() || [{ x: 0, y: 0, w: 100, h: 100, rot: 0, fit: '', items: man.items || [], full: true }];
+  var big = zones.reduce(function (b, d, i) { return d.w * d.h > zones[b].w * zones[b].h ? i : b; }, 0); // só a maior zona toca som
+  zs.forEach(relz); stage.innerHTML = ''; zs = [];
+  zones.forEach(function (zd, i) {
+    var host = document.createElement('div'), el = document.createElement('div'); host.className = 'z'; el.className = 'zi';
+    host.style.cssText = 'left:' + zd.x + '%;top:' + zd.y + '%;width:' + zd.w + '%;height:' + zd.h + '%'; if (zd.fit) host.style.setProperty('--fit', zd.fit);
+    host.appendChild(el); stage.appendChild(host); zs.push({ stop: function () {}, el: el, host: host, zd: zd, audio: i === big, cur: '', rel: null, idx: 0 });
   });
-  zs.forEach(z => { // rotação própria da zona, medida depois de entrar na tela
-    const W = z.host.clientWidth, H = z.host.clientHeight, r = z.zd.rot || 0, st = z.el.style;
-    if (r === 90) st.cssText = `left:${W}px;top:0;width:${H}px;height:${W}px;transform-origin:0 0;transform:rotate(90deg)`;
-    else if (r === 270) st.cssText = `left:0;top:${H}px;width:${H}px;height:${W}px;transform-origin:0 0;transform:rotate(-90deg)`;
+  zs.forEach(function (z) { // rotação própria da zona, medida depois de entrar na tela
+    var W = z.host.clientWidth, H = z.host.clientHeight, r = z.zd.rot || 0, st = z.el.style;
+    if (r === 90) st.cssText = 'left:' + W + 'px;top:0;width:' + H + 'px;height:' + W + 'px;transform-origin:0 0;transform:rotate(90deg)';
+    else if (r === 270) st.cssText = 'left:0;top:' + H + 'px;width:' + H + 'px;height:' + W + 'px;transform-origin:0 0;transform:rotate(-90deg)';
     else { st.cssText = 'left:0;top:0;width:100%;height:100%'; if (r === 180) st.transform = 'rotate(180deg)'; }
     loop(z, id);
   });
 }
 async function loop(z, id) {
-  const items = z.zd.items;
+  var items = z.zd.items || [];
   if (!items.length) { if (z.zd.full) msg('Playlist vazia', 'Adicione conteúdo no painel'); return; }
-  let i = 0;
+  var i = 0, bad = 0;
   while (id === run) {
-    const it = items[i++ % items.length];
-    try { await play(it, z); } catch { await wait(1500); }
+    var it = items[i++ % items.length], t = Date.now();
+    try { await play(it, z, items.length === 1); bad = 0; } catch (e) { bad++; await wait(Math.min(1500 * bad, 6000)); continue; }
+    if (Date.now() - t < 300) await wait(500); // evita laço apertado se algo terminar na hora
   }
 }
+// muda a tela da zona (o item novo já está pronto, então não pisca em preto)
+function swap(z, node, rel) { relz(z); z.el.innerHTML = ''; z.el.appendChild(node); z.rel = rel || null; }
+// resize / girar o aparelho: refaz as zonas com o desenho certo
+var rsz = 0, lw = innerWidth, lh = innerHeight;
+addEventListener('resize', function () {
+  clearTimeout(rsz);
+  rsz = setTimeout(function () { if (Math.abs(innerWidth - lw) + Math.abs(innerHeight - lh) < 3) return; lw = innerWidth; lh = innerHeight; if (man && man.paired && man.version) { cur = ''; apply(); } }, 500);
+});
+
 // ---- relatório de exibição: soma, por hora (UTC) e conteúdo, quanto tempo cada coisa ficou na tela ----
-const jget = (k, d) => { try { return JSON.parse(localStorage[k]) || d; } catch { return d; } };
-function rec(it, ms) {
-  const sec = Math.min(ms / 1000, 3600); if (sec < 1 || !it.id) return;
-  try { const acc = jget('gacc', {}), k = new Date().toISOString().slice(0, 13) + '|' + it.id, r = acc[k] || (acc[k] = [0, 0]);
-    r[0] += sec; r[1] += 1; localStorage.gacc = JSON.stringify(acc); } catch {}
+function rec(it, ms, part) {
+  var sec = Math.min(ms / 1000, 3600); if (sec < 1 || !it.id) return;
+  try { var acc = jget('gacc', {}), k = new Date().toISOString().slice(0, 13) + '|' + it.id, r = acc[k] || (acc[k] = [0, 0]);
+    r[0] += sec; if (!part) r[1] += 1; localStorage.gacc = JSON.stringify(acc); } catch (e) {}
 }
 async function flushLog() { // envia o acumulado; se estiver sem internet, guarda e tenta de novo depois
   try {
-    let pend = jget('gpend', null);
+    var pend = jget('gpend', null);
     if (!pend) {
-      const acc = jget('gacc', {}), ks = Object.keys(acc); if (!ks.length) return;
-      pend = { b: uid(), rows: ks.map(k => { const [h, c] = k.split('|'); return { h, c, s: Math.round(acc[k][0]), n: acc[k][1] }; }) };
+      var acc = jget('gacc', {}), ks = Object.keys(acc); if (!ks.length) return;
+      pend = { b: uid(), rows: ks.map(function (k) { var p = k.split('|'); return { h: p[0], c: p[1], s: Math.round(acc[k][0]), n: acc[k][1] }; }) };
       localStorage.gpend = JSON.stringify(pend); localStorage.gacc = '{}';
     }
-    const r = await fetch('/api/player/log?device=' + dev, { method: 'POST', body: JSON.stringify(pend) });
+    var r = await fetch('/api/player/log?device=' + dev, { method: 'POST', body: JSON.stringify(pend) });
     if (r.ok) localStorage.removeItem('gpend');
-  } catch {}
+  } catch (e) {}
 }
 setInterval(flushLog, 60000);
+
 // ---- widgets: clima e notícias (os dados vêm do servidor; sem internet, mostra o último valor guardado) ----
-const hx = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const wIcon = (c, day) => c === 0 ? (day ? '☀️' : '🌙') : c <= 2 ? (day ? '🌤️' : '☁️') : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 57 ? '🌦️' : c <= 67 ? '🌧️' : c <= 77 ? '❄️' : c <= 82 ? '🌧️' : c <= 86 ? '❄️' : '⛈️';
-const wDesc = c => c === 0 ? 'Céu limpo' : c === 1 ? 'Poucas nuvens' : c === 2 ? 'Parcialmente nublado' : c === 3 ? 'Nublado' : c <= 48 ? 'Neblina' : c <= 57 ? 'Garoa' : c <= 67 ? 'Chuva' : c <= 77 ? 'Neve' : c <= 82 ? 'Pancadas de chuva' : c <= 86 ? 'Neve' : 'Tempestade';
+function wIcon(c, day) { return c === 0 ? (day ? '☀️' : '🌙') : c <= 2 ? (day ? '🌤️' : '☁️') : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 57 ? '🌦️' : c <= 67 ? '🌧️' : c <= 77 ? '❄️' : c <= 82 ? '🌧️' : c <= 86 ? '❄️' : '⛈️'; }
+function wDesc(c) { return c === 0 ? 'Céu limpo' : c === 1 ? 'Poucas nuvens' : c === 2 ? 'Parcialmente nublado' : c === 3 ? 'Nublado' : c <= 48 ? 'Neblina' : c <= 57 ? 'Garoa' : c <= 67 ? 'Chuva' : c <= 77 ? 'Neve' : c <= 82 ? 'Pancadas de chuva' : c <= 86 ? 'Neve' : 'Tempestade'; }
 async function wData(it) {
-  const key = 'w_' + it.wk;
-  try { const r = await fetch('/api/player/widget?device=' + dev + '&k=' + it.wk); if (r.ok) { const j = await r.json(); localStorage[key] = JSON.stringify({ at: j.at, data: j.data }); } } catch {}
+  var key = 'w_' + it.wk;
+  try { var r = await fetch('/api/player/widget?device=' + dev + '&k=' + it.wk); if (r.ok) { var j = await r.json(); localStorage[key] = JSON.stringify({ at: j.at, data: j.data }); } } catch (e) {}
   return jget(key, null);
 }
 function wxHtml(it, d, W, H) {
-  const c = it.cfg, k = c.scale / 100, base = `class="w f-${c.font}" style="background:${c.bg};color:${c.color};`;
-  if (!d) return `<div ${base}align-items:center;justify-content:center;text-align:center;font-size:${Math.min(H * .3, W * .06) * k}px">Sem dados de clima</div>`;
-  const cred = c.credit ? `<span style="opacity:.55;font-size:${Math.max(8, Math.min(H * .07, W * .018))}px;white-space:nowrap">Open-Meteo.com</span>` : '';
-  if (H < W * .25) { const fs = H * .5 * k; // faixa fina: tudo em uma linha
-    return `<div ${base}align-items:center;justify-content:center;gap:${fs * .5}px;padding:0 ${fs * .5}px;font-size:${fs}px;white-space:nowrap"><span>${wIcon(d.code, d.day)}</span><b style="color:${c.accent}">${d.temp}°</b><span style="font-size:.6em">${hx(c.city)}</span><span style="font-size:.5em;opacity:.85">↑${d.max}° ↓${d.min}°${d.rain != null ? ' · 💧' + d.rain + '%' : ''}</span>${cred}</div>`; }
-  const u = Math.min(W, H * 1.3) * k, fc = c.forecast && H > W * .5 && d.next?.length ? `<div style="display:flex;gap:${u * .06}px;margin-top:${u * .03}px;font-size:${u * .045}px">${d.next.map(n => `<div style="text-align:center"><div style="opacity:.8">${hx(n.d)}</div><div style="font-size:1.8em">${wIcon(n.code, 1)}</div><div>${n.max}° <span style="opacity:.7">${n.min}°</span></div></div>`).join('')}</div>` : '';
-  return `<div ${base}flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:${u * .01}px;padding:${u * .03}px"><div style="font-size:${u * .07}px;opacity:.9">${hx(c.city)}</div><div style="font-size:${u * .2}px;line-height:1">${wIcon(d.code, d.day)}</div><div style="font-size:${u * .18}px;line-height:1;font-weight:700;color:${c.accent}">${d.temp}°C</div><div style="font-size:${u * .06}px">${wDesc(d.code)}</div><div style="font-size:${u * .05}px;opacity:.85">↑ ${d.max}°  ↓ ${d.min}°${d.rain != null ? '  ·  💧 ' + d.rain + '%' : ''}</div>${fc}${cred}</div>`;
+  var c = it.cfg, k = c.scale / 100, base = 'class="w f-' + c.font + '" style="background:' + c.bg + ';color:' + c.color + ';';
+  if (!d) return '<div ' + base + 'align-items:center;justify-content:center;text-align:center;font-size:' + (Math.min(H * .3, W * .06) * k) + 'px">Sem dados de clima</div>';
+  var cred = c.credit ? '<span style="opacity:.55;font-size:' + Math.max(8, Math.min(H * .07, W * .018)) + 'px;white-space:nowrap;margin-left:1em">Open-Meteo.com</span>' : '';
+  var city = hx(c.city), mm = '↑' + d.max + '° ↓' + d.min + '°' + (d.rain != null ? ' · 💧' + d.rain + '%' : '');
+  if (H < W * .25) { var fs = H * .5 * k, sp = 'margin-left:' + (fs * .4) + 'px'; // faixa fina: tudo em uma linha
+    return '<div ' + base + 'align-items:center;justify-content:center;padding:0 ' + (fs * .5) + 'px;font-size:' + fs + 'px;white-space:nowrap"><span>' + wIcon(d.code, d.day) + '</span><b style="' + sp + ';color:' + c.accent + '">' + d.temp + '°</b><span style="' + sp + ';font-size:.6em">' + city + '</span><span style="' + sp + ';font-size:.5em;opacity:.85">' + mm + '</span>' + cred + '</div>'; }
+  var u = Math.min(W, H * 1.3) * k, fc = '';
+  if (c.forecast && H > W * .5 && d.next && d.next.length) fc = '<div style="display:flex;margin-top:' + (u * .03) + 'px;font-size:' + (u * .045) + 'px">' + d.next.map(function (n) { return '<div style="text-align:center;margin:0 ' + (u * .03) + 'px"><div style="opacity:.8">' + hx(n.d) + '</div><div style="font-size:1.8em">' + wIcon(n.code, 1) + '</div><div>' + n.max + '° <span style="opacity:.7">' + n.min + '°</span></div></div>'; }).join('') + '</div>';
+  return '<div ' + base + 'flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:' + (u * .03) + 'px"><div style="font-size:' + (u * .07) + 'px;opacity:.9">' + city + '</div><div style="font-size:' + (u * .2) + 'px;line-height:1">' + wIcon(d.code, d.day) + '</div><div style="font-size:' + (u * .18) + 'px;line-height:1;font-weight:700;color:' + c.accent + '">' + d.temp + '°C</div><div style="font-size:' + (u * .06) + 'px">' + wDesc(d.code) + '</div><div style="font-size:' + (u * .05) + 'px;opacity:.85">' + mm + '</div>' + fc + (c.credit ? '<div style="margin-top:' + (u * .02) + 'px">' + cred.replace('margin-left:1em', 'margin-left:0') + '</div>' : '') + '</div>';
 }
 function tickerHtml(it, d, W, H) {
-  const c = it.cfg, fs = H * .5 * c.scale / 100, list = d?.items || [];
-  const txt = list.length ? list.map(x => `<span style="padding:0 ${fs * .6}px">${hx(x.t)}</span><span style="color:${c.accent}">●</span>`).join('') : `<span style="padding:0 ${fs}px;opacity:.7">Carregando notícias…</span>`;
-  return `<div class="w f-${c.font}" style="background:${c.bg};color:${c.color};align-items:center;font-size:${fs}px">${c.label ? `<div style="background:${c.accent};color:#fff;font-weight:700;padding:0 ${fs * .5}px;height:100%;display:flex;align-items:center;white-space:nowrap;font-size:.8em;position:relative;z-index:1">${hx(c.label)}</div>` : ''}<div class="cont" style="flex:1;overflow:hidden;height:100%;display:flex;align-items:center"><div class="run" style="display:inline-flex;white-space:nowrap;will-change:transform">${txt}</div></div></div>`;
+  var c = it.cfg, fs = H * .5 * c.scale / 100, list = (d && d.items) || [];
+  var txt = list.length ? list.map(function (x) { return '<span style="padding:0 ' + (fs * .6) + 'px">' + hx(x.t) + '</span><span style="color:' + c.accent + '">●</span>'; }).join('') : '<span style="padding:0 ' + fs + 'px;opacity:.7">Carregando notícias…</span>';
+  return '<div class="w f-' + c.font + '" style="background:' + c.bg + ';color:' + c.color + ';align-items:center;font-size:' + fs + 'px">' + (c.label ? '<div style="background:' + c.accent + ';color:#fff;font-weight:700;padding:0 ' + (fs * .5) + 'px;height:100%;display:flex;align-items:center;white-space:nowrap;font-size:.8em;position:relative;z-index:1">' + hx(c.label) + '</div>' : '') + '<div class="cont" style="flex:1;overflow:hidden;height:100%;display:flex;align-items:center"><div class="run" style="display:inline-flex;white-space:nowrap">' + txt + '</div></div></div>';
 }
 function slideHtml(c, x, W, H, i, n) {
-  const fs = Math.min(H * .14, W * .055) * c.scale / 100 * Math.max(.55, Math.min(1, 80 / (x.t.length || 1)));
-  return `<div class="w f-${c.font}" style="background:${c.bg};color:${c.color};flex-direction:column;justify-content:center;padding:${W * .05}px;gap:${fs * .5}px;text-align:left"><div style="display:flex;gap:${fs * .4}px;align-items:center;font-size:${fs * .45}px;color:${c.accent};font-weight:700;letter-spacing:.08em">${hx(c.label)}<span style="opacity:.7;font-weight:400">${i + 1}/${n}</span></div><div style="font-size:${fs}px;line-height:1.2;font-weight:600">${hx(x.t)}</div><div style="font-size:${fs * .42}px;opacity:.7">${hx(x.s)}</div></div>`;
+  var fs = Math.min(H * .14, W * .055) * c.scale / 100 * Math.max(.55, Math.min(1, 80 / (x.t.length || 1)));
+  return '<div class="w f-' + c.font + '" style="background:' + c.bg + ';color:' + c.color + ';flex-direction:column;justify-content:center;padding:' + (W * .05) + 'px;text-align:left"><div style="font-size:' + (fs * .45) + 'px;color:' + c.accent + ';font-weight:700;letter-spacing:.08em;margin-bottom:' + (fs * .4) + 'px">' + hx(c.label) + '<span style="opacity:.7;font-weight:400;margin-left:' + (fs * .4) + 'px">' + (i + 1) + '/' + n + '</span></div><div style="font-size:' + fs + 'px;line-height:1.2;font-weight:600">' + hx(x.t) + '</div><div style="font-size:' + (fs * .42) + 'px;opacity:.7;margin-top:' + (fs * .4) + 'px">' + hx(x.s) + '</div></div>';
 }
 function wDraw(it, z, d) {
-  const W = z.el.clientWidth || innerWidth, H = z.el.clientHeight || innerHeight, c = it.cfg;
+  var W = z.el.clientWidth || innerWidth, H = z.el.clientHeight || innerHeight, c = it.cfg;
   if (it.type === 'weather') { z.el.innerHTML = wxHtml(it, d, W, H); return; }
-  const list = d?.items || [];
-  if (c.mode === 'slides' && list.length) { const i = (z.idx || 0) % list.length; z.el.innerHTML = slideHtml(c, list[i], W, H, i, list.length); return; }
+  var list = (d && d.items) || [];
+  if (c.mode === 'slides' && list.length) { var i = (z.idx || 0) % list.length; z.el.innerHTML = slideHtml(c, list[i], W, H, i, list.length); return; }
   z.el.innerHTML = tickerHtml(it, d, W, H);
-  const run = z.el.querySelector('.run'), cont = z.el.querySelector('.cont'); if (!run || !list.length) return;
-  const one = run.scrollWidth, m = Math.max(1, Math.ceil(cont.clientWidth / Math.max(1, one))), half = run.innerHTML.repeat(m); // repete até encher, e duplica para o laço ficar contínuo
-  run.innerHTML = half + half; run.style.animation = `tkr ${(one * m) / Math.max(15, c.speed * (W / 1280))}s linear infinite`;
+  var run = z.el.querySelector('.run'), cont = z.el.querySelector('.cont'); if (!run || !list.length) return;
+  var one = run.scrollWidth, m = Math.max(1, Math.ceil(cont.clientWidth / Math.max(1, one))), half = run.innerHTML; // repete até encher, e duplica para o laço ficar contínuo
+  var rep = ''; for (var n = 0; n < m; n++) rep += half;
+  run.innerHTML = rep + rep; run.style.animation = 'tkr ' + ((one * m) / Math.max(15, c.speed * (W / 1280))) + 's linear infinite';
 }
 async function widget(it, z, cancel) {
-  const keep = z.cur === it.wk && z.el.firstChild; let d = jget('w_' + it.wk, null)?.data, alive = true; z.idx ||= 0;
+  var keep = z.cur === it.wk && z.el.firstChild, cd = jget('w_' + it.wk, null), d = cd ? cd.data : null, alive = true;
+  relz(z);
   if (!keep) { z.cur = it.wk; wDraw(it, z, d); }
-  const refresh = async () => { const r = await wData(it); if (alive && r?.data && JSON.stringify(r.data) !== JSON.stringify(d)) { d = r.data; wDraw(it, z, d); } };
-  refresh(); const t1 = setInterval(refresh, 300000), t3 = setInterval(() => { if (!d) refresh(); }, 20000),
-    t2 = it.type === 'news' && it.cfg.mode === 'slides' ? setInterval(() => { z.idx++; wDraw(it, z, d); }, it.cfg.interval * 1000) : 0;
+  var refresh = async function () { var r = await wData(it); if (alive && r && r.data && JSON.stringify(r.data) !== JSON.stringify(d)) { d = r.data; wDraw(it, z, d); } };
+  refresh();
+  var t1 = setInterval(refresh, 300000), t3 = setInterval(function () { if (!d) refresh(); }, 20000), t2 = 0;
+  if (it.type === 'news' && it.cfg.mode === 'slides') t2 = setInterval(function () { z.idx++; wDraw(it, z, d); }, it.cfg.interval * 1000);
   try { await Promise.race([wait(it.seconds * 1000), cancel]); } finally { alive = false; clearInterval(t1); clearInterval(t3); if (t2) clearInterval(t2); }
 }
-async function play(it, z) {
-  let t0 = 0; // só conta a partir do momento em que o conteúdo realmente apareceu
-  const cancel = new Promise(r => z.stop = r);
-  const work = (async () => {
+
+// zoom e posição da mídia dentro da zona (conteúdo direto da zona)
+function applyView(n, z) { var v = z.zd.view; if (!v) return; n.style.objectPosition = v.ax + '% ' + v.ay + '%'; if (v.zoom !== 100) { n.style.transformOrigin = v.ax + '% ' + v.ay + '%'; n.style.transform = 'scale(' + (v.zoom / 100) + ')'; } }
+// ---- toca um item na zona ----
+async function play(it, z, single) {
+  var t0 = 0, mark = 0, cl = [];
+  var cancel = new Promise(function (r) { z.stop = r; });
+  var work = (async function () {
     if (it.type === 'weather' || it.type === 'news') { t0 = Date.now(); await widget(it, z, cancel); return; }
-    z.cur = '';
     if (it.type === 'clock') {
-      const tick = () => { const d = new Date(), fs = Math.min((z.el.clientWidth || innerWidth) * 0.2, (z.el.clientHeight || innerHeight) * 0.3);
-        z.el.innerHTML = `<div><div class="big" style="font-size:${fs}px">${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div><div class="sub" style="font-size:${fs * 0.22}px">${d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>`; };
-      tick(); t0 = Date.now(); const t = setInterval(tick, 1000); try { await Promise.race([wait(it.seconds * 1000), cancel]); } finally { clearInterval(t); } return;
+      z.cur = ''; relz(z);
+      var tick = function () { var d = new Date(), fs = Math.min((z.el.clientWidth || innerWidth) * 0.2, (z.el.clientHeight || innerHeight) * 0.3);
+        z.el.innerHTML = '<div><div class="big" style="font-size:' + fs + 'px">' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</div><div class="sub" style="font-size:' + (fs * 0.22) + 'px">' + d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) + '</div></div>'; };
+      tick(); t0 = Date.now(); var t = setInterval(tick, 1000); cl.push(function () { clearInterval(t); }); await wait(it.seconds * 1000); return;
     }
-    const url = NATIVE ? it.url : URL.createObjectURL(await fetchBlob(it.url)); // no app: toca direto do arquivo, sem carregar na memória
-    try {
-      if (it.type === 'image') { z.el.innerHTML = `<img src="${url}">`; t0 = Date.now(); await wait(it.seconds * 1000); }
-      else await new Promise((ok, no) => { const v = document.createElement('video'); v.src = url; v.muted = !(man.sound && z.audio); v.autoplay = v.playsInline = true;
-        v.onplaying = () => { if (!t0) t0 = Date.now(); }; v.onended = ok; v.onerror = no; z.el.replaceChildren(v); v.play().catch(() => { v.muted = true; v.play().catch(no); }); });
-    } finally { if (!NATIVE) URL.revokeObjectURL(url); }
+    var key = 'i:' + it.url;
+    if (it.type === 'image' && single && z.cur === key && z.el.firstChild) { t0 = Date.now(); await wait(it.seconds * 1000); return; } // lista de 1 imagem só: mantém na tela, sem recarregar
+    var url = NATIVE ? it.url : URL.createObjectURL(await fetchBlob(it.url)); // no app: toca direto do arquivo, sem carregar na memória
+    if (!NATIVE) cl.push(function () { URL.revokeObjectURL(url); });
+    if (it.type === 'image') {
+      var img = new Image(); img.src = url; applyView(img, z);
+      await new Promise(function (ok, no) { img.onload = ok; img.onerror = function () { no(new Error('imagem')); }; });
+      if (img.decode) { try { await img.decode(); } catch (e) {} }
+      swap(z, img, null); z.cur = key; t0 = Date.now(); await wait(it.seconds * 1000); return;
+    }
+    // vídeo: só aparece quando está pronto; é liberado (pause + sem src) ao sair, para não esgotar os decodificadores da TV Box
+    var v = document.createElement('video'), dog = 0, shown = false, ticks = 0, lastT = -1, still = 0;
+    applyView(v, z); v.muted = !(man.sound && z.audio); v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; if (single) v.loop = true;
+    var release = function () { clearInterval(dog); try { v.pause(); } catch (e) {} v.removeAttribute('src'); try { v.load(); } catch (e) {} };
+    cl.push(function () { clearInterval(dog); if (!shown) release(); }); // se chegou a aparecer, o próximo item é quem solta
+    v.src = url;
+    if (single) { mark = setInterval(function () { if (t0) { rec(it, Date.now() - t0, true); t0 = Date.now(); } }, 60000); cl.push(function () { clearInterval(mark); }); }
+    await new Promise(function (ok, no) {
+      var show = function () { if (shown) return; shown = true; z.cur = ''; swap(z, v, release);
+        var p = v.play(); if (p && p.catch) p.catch(function () { v.muted = true; var q = v.play(); if (q && q.catch) q.catch(no); }); };
+      v.oncanplay = show; v.onloadeddata = show;
+      v.onplaying = function () { if (!t0) t0 = Date.now(); };
+      v.onended = ok; v.onerror = function () { no(new Error('vídeo')); };
+      dog = setInterval(function () {
+        ticks++;
+        if (!shown) { if (ticks > 25) no(new Error('vídeo não carregou')); return; }
+        if (v.ended) return;
+        var t = v.currentTime; if (t === lastT) still++; else still = 0; lastT = t;
+        if (still >= 15) ok(); // travou: segue para o próximo
+      }, 1000);
+    });
   })();
-  try { await Promise.race([work, cancel]); } finally { if (t0) rec(it, Date.now() - t0); }
+  work.catch(function () {});
+  try { await Promise.race([work, cancel]); } finally { cl.forEach(function (f) { try { f(); } catch (e) {} }); if (t0) rec(it, Date.now() - t0); }
 }
 
-// Captura do que está na tela e envia ao painel (a pedido).
-let capBusy = false;
 async function doCapture() {
   if (capBusy) return; capBusy = true;
   try {
-    const vert = (+man.rotation || 0) % 180 !== 0, W0 = vert ? innerHeight : innerWidth, H0 = vert ? innerWidth : innerHeight, k = Math.min(1, 640 / W0);
-    const W = Math.round(W0 * k), H = Math.round(H0 * k), c = document.createElement('canvas'); c.width = W; c.height = H;
-    const g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    const zl = stage.querySelector('.z') ? zs : [{ el: stage, zd: { x: 0, y: 0, w: 100, h: 100, fit: '' } }];
-    for (const z of zl) { // desenha cada zona no seu retângulo (a rotação própria da zona não é considerada na captura)
-      const X = W * z.zd.x / 100, Y = H * z.zd.y / 100, ZW = W * z.zd.w / 100, ZH = H * z.zd.h / 100, el = z.el.querySelector('img,video');
+    var vert = (+man.rotation || 0) % 180 !== 0, W0 = vert ? innerHeight : innerWidth, H0 = vert ? innerWidth : innerHeight, k = Math.min(1, 640 / W0);
+    var W = Math.round(W0 * k), H = Math.round(H0 * k), c = document.createElement('canvas'); c.width = W; c.height = H;
+    var g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+    var zl = stage.querySelector('.z') ? zs : [{ el: stage, zd: { x: 0, y: 0, w: 100, h: 100, fit: '' } }];
+    zl.forEach(function (z) { // desenha cada zona no seu retângulo (a rotação própria da zona não é considerada na captura)
+      var X = W * z.zd.x / 100, Y = H * z.zd.y / 100, ZW = W * z.zd.w / 100, ZH = H * z.zd.h / 100, el = z.el.querySelector('img,video');
       g.save(); g.beginPath(); g.rect(X, Y, ZW, ZH); g.clip();
+      var wd = z.el.querySelector('.w');
       if (el) {
-        const sw = el.videoWidth || el.naturalWidth, sh = el.videoHeight || el.naturalHeight;
-        if (sw && sh) { const fit = z.zd.fit || man.fit || 'contain'; let dw = ZW, dh = ZH, dx = X, dy = Y;
-          if (fit !== 'fill') { const f = fit === 'cover' ? Math.max(ZW / sw, ZH / sh) : Math.min(ZW / sw, ZH / sh); dw = sw * f; dh = sh * f; dx = X + (ZW - dw) / 2; dy = Y + (ZH - dh) / 2; }
+        var sw = el.videoWidth || el.naturalWidth, sh = el.videoHeight || el.naturalHeight;
+        if (sw && sh) { var fit = z.zd.fit || man.fit || 'contain', dw = ZW, dh = ZH, dx = X, dy = Y;
+          if (fit !== 'fill') { var f = fit === 'cover' ? Math.max(ZW / sw, ZH / sh) : Math.min(ZW / sw, ZH / sh); dw = sw * f; dh = sh * f; dx = X + (ZW - dw) / 2; dy = Y + (ZH - dh) / 2; }
           g.drawImage(el, dx, dy, dw, dh); }
-      } else if (z.el.querySelector('.w')) { // widget: fundo e texto aproximados
-        const w = z.el.querySelector('.w'); g.fillStyle = getComputedStyle(w).backgroundColor; g.fillRect(X, Y, ZW, ZH);
-        g.fillStyle = getComputedStyle(w).color; g.textAlign = 'center'; g.font = `600 ${Math.min(ZH * .3, ZW * .05)}px sans-serif`;
-        g.fillText((w.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 70), X + ZW / 2, Y + ZH / 2);
+      } else if (wd) { // widget: fundo e texto aproximados
+        g.fillStyle = getComputedStyle(wd).backgroundColor; g.fillRect(X, Y, ZW, ZH);
+        g.fillStyle = getComputedStyle(wd).color; g.textAlign = 'center'; g.font = '600 ' + Math.min(ZH * .3, ZW * .05) + 'px sans-serif';
+        g.fillText((wd.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 70), X + ZW / 2, Y + ZH / 2);
       } else { // relógio ou mensagem
-        const fs = Math.min(ZW * 0.2, ZH * 0.3); g.fillStyle = '#fff'; g.textAlign = 'center';
-        g.font = `700 ${fs}px sans-serif`; g.fillText(z.el.querySelector('.big')?.textContent || '', X + ZW / 2, Y + ZH / 2);
-        g.font = `${fs * 0.22}px sans-serif`; g.fillText(z.el.querySelector('.sub')?.textContent || '', X + ZW / 2, Y + ZH / 2 + fs * 0.4);
+        var fs = Math.min(ZW * 0.2, ZH * 0.3), b = z.el.querySelector('.big'), s = z.el.querySelector('.sub'); g.fillStyle = '#fff'; g.textAlign = 'center';
+        g.font = '700 ' + fs + 'px sans-serif'; g.fillText(b ? b.textContent : '', X + ZW / 2, Y + ZH / 2);
+        g.font = (fs * 0.22) + 'px sans-serif'; g.fillText(s ? s.textContent : '', X + ZW / 2, Y + ZH / 2 + fs * 0.4);
       }
       g.restore();
-    }
-    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.7));
+    });
+    var blob = await new Promise(function (r) { c.toBlob(r, 'image/jpeg', 0.7); });
     await fetch('/api/player/capture?device=' + dev, { method: 'POST', body: blob });
-  } catch {} finally { capBusy = false; }
+  } catch (e) {} finally { capBusy = false; }
 }
 
 apply(); poll(); setInterval(poll, 10000);

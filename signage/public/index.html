@@ -82,12 +82,14 @@ button.dk{background:#2b2f36;border-color:#2b2f36;color:#fff;font-size:12px;font
 #qo{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,17,20,.45);z-index:50;display:flex;justify-content:center;align-items:flex-start;padding-top:12vh}
 .qp{width:min(660px,94vw);background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}.qh{display:flex;gap:6px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
 .qh .tab{border:0;background:transparent;padding:6px 10px;border-radius:8px;color:var(--mut)}.qh .tab.on{background:color-mix(in srgb,var(--ac) 20%,transparent);color:var(--ink);font-weight:600}.qh input{flex:1;border:0;outline:0;background:transparent;font-size:16px;padding:6px;min-width:0}
-.qb{padding:12px 16px;max-height:52vh;overflow:auto;font-size:14px}.qb ul{margin:6px 0 0 18px;padding:0}.qa{margin-bottom:10px}.sug{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.sug button{border-radius:999px;font-size:13px;padding:5px 12px}
+.qb{padding:12px 16px;max-height:52vh;overflow:auto;font-size:14px}.qb ul{margin:6px 0 0 18px;padding:0}.qb code{background:color-mix(in srgb,var(--ink) 9%,transparent);border-radius:4px;padding:1px 5px;font-size:12px}.qm{max-width:92%;margin:8px 0;padding:8px 12px;border-radius:12px;line-height:1.45}.qm.me{margin-left:auto;background:color-mix(in srgb,var(--ac) 22%,transparent)}.qm.bot{background:color-mix(in srgb,var(--ink) 6%,transparent)}.qm a{color:var(--ac2,#2563eb);cursor:pointer}.qm hr{border:0;border-top:1px solid var(--line);margin:8px 0}.sug{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.sug button{border-radius:999px;font-size:13px;padding:5px 12px}
 .qr{display:flex;justify-content:space-between;gap:12px;padding:8px 10px;border-radius:8px;cursor:pointer}.qr:hover{background:color-mix(in srgb,var(--ac) 14%,transparent)}.qf{padding:8px 16px;font-size:12px;color:var(--mut);border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
 .r3{grid-template-columns:repeat(3,minmax(0,1fr))}.r2{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:1000px){.r3,.r2{grid-template-columns:1fr}}
 .sb2{display:flex;align-items:center;gap:10px;border-radius:12px;padding:14px 18px;color:#fff;font-size:17px;font-weight:600}.sb2 .gi{font-weight:800;font-size:20px}.sb2.ok{background:var(--ok)}.sb2.warn{background:var(--warn)}.sb2.bad{background:var(--bad)}.sb2.off{background:#3a3f47}
 button.cc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;text-align:left}button.cc b{font-size:30px;line-height:1.1}button.cc span{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}button.cc.on{outline:2px solid var(--ac)}
 .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;border:1px solid;white-space:nowrap}.pill.ok{color:var(--ok);border-color:var(--ok)}.pill.warn{color:var(--warn);border-color:var(--warn)}.pill.bad{color:var(--bad);border-color:var(--bad)}.pill.off{color:var(--mut);border-color:var(--line)}
+.zrow2{border-top:1px solid var(--line);padding:7px 0}.zr1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.zr1 i{width:12px;height:12px;border-radius:3px;display:inline-block}.zx{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:7px 0 2px 20px;font-size:13px}.zx label{display:flex;gap:6px;align-items:center}
+.zn .zth{position:absolute;left:0;top:0;width:100%;height:100%;opacity:.8;pointer-events:none}.zn>b,.zn>span{position:relative;text-shadow:0 1px 2px rgba(0,0,0,.75)}
 </style></head><body><div id="root"></div><dialog id="dlg"></dialog>
 <script>
 const $ = s => document.querySelector(s);
@@ -410,13 +412,13 @@ function wOpen() {
     <label>Velocidade <input type="number" id="w_speed" min="20" max="200" value="${c.speed}" style="width:64px"></label>
     <label>Troca a cada <input type="number" id="w_int" min="3" max="60" value="${c.interval}" style="width:64px"> s</label></div>
     <label class="f">Rótulo (deixe vazio para esconder)<input id="w_label" value="${esc(c.label)}" maxlength="24"></label>`;
-  modal(`<h2 style="margin-top:0">${W ? 'Widget de clima' : 'Widget de notícias'}</h2>${W ? wx : nw}${common}<label class="f">Tempo na tela (segundos)<input type="number" id="w_sec" min="1" value="${WM.seconds}"></label>
+  modal(`<h2 style="margin-top:0">${W ? 'Widget de clima' : 'Widget de notícias'}</h2>${W ? wx : nw}${common}${WM.zone ? '' : `<label class="f">Tempo na tela (segundos)<input type="number" id="w_sec" min="1" value="${WM.seconds}"></label>`}
     <div id="w_test" class="mut" style="font-size:13px;margin:6px 0"></div>
-    <div class="acts"><button onclick="wTest()">Testar</button><button onclick="closeM()">Cancelar</button><button class="p" onclick="wSave()">${WM.k < 0 ? 'Adicionar à lista' : 'Salvar'}</button></div>`);
+    <div class="acts"><button onclick="wTest()">Testar</button><button onclick="closeM()">Cancelar</button><button class="p" onclick="wSave()">${WM.zone ? 'Aplicar na zona' : WM.k < 0 ? 'Adicionar à lista' : 'Salvar'}</button></div>`);
 }
 function wRead() {
   const c = WM.cfg, v = id => $('#' + id)?.value;
-  c.bg = v('w_bg'); c.color = v('w_color'); c.accent = v('w_accent'); c.scale = +v('w_scale') || 100; c.font = v('w_font'); WM.seconds = Math.max(1, +v('w_sec') || 10);
+  c.bg = v('w_bg'); c.color = v('w_color'); c.accent = v('w_accent'); c.scale = +v('w_scale') || 100; c.font = v('w_font'); if ($('#w_sec')) WM.seconds = Math.max(1, +v('w_sec') || 10);
   if (WM.kind === 'weather') { c.forecast = $('#w_fc').checked; c.credit = $('#w_cr').checked; }
   else { c.feeds = v('w_feeds').split(/\s+/).filter(Boolean); c.mode = v('w_mode'); c.count = +v('w_count') || 10; c.speed = +v('w_speed') || 70; c.interval = +v('w_int') || 8; c.label = v('w_label'); }
 }
@@ -436,6 +438,7 @@ const wSave = guard(async () => {
   wRead(); const c = WM.cfg;
   if (WM.kind === 'weather' && !c.lat && !c.lon) throw new Error('Busque e escolha a cidade.');
   if (WM.kind === 'news' && !c.feeds.length) throw new Error('Informe ao menos um feed RSS.');
+  if (WM.zone) { ZE[WM.zone.o].zones[WM.zone.i].content = { type: 'widget', item: { kind: WM.kind, seconds: WM.seconds, cfg: c } }; closeM(); zLater(); return; }
   const it = { kind: WM.kind, seconds: WM.seconds, cfg: c }; if (WM.k < 0) ed.items.push(it); else ed.items[WM.k] = it; closeM(); pEditor(WM.id);
 });
 
@@ -542,41 +545,214 @@ function inicioDraw() {
 }
 
 /* ---------- busca e assistente ---------- */
-let Q = { mode: 'buscar', q: '', ans: '' };
-function qOpen(mode) { Q.mode = mode || 'buscar'; Q.q = ''; Q.ans = ''; let o = $('#qo'); if (!o) { o = document.createElement('div'); o.id = 'qo'; document.body.appendChild(o); o.onclick = e => { if (e.target === o) qClose(); }; } qDraw(); }
+let Q = { mode: 'buscar', q: '', log: [], sug: null };
+function qOpen(mode) { Q.mode = mode || 'buscar'; Q.q = ''; let o = $('#qo'); if (!o) { o = document.createElement('div'); o.id = 'qo'; document.body.appendChild(o); o.onclick = e => { if (e.target === o) qClose(); }; } qDraw(); }
 const qClose = () => { const o = $('#qo'); if (o) o.remove(); };
+const QSUG = ['Quais telas estão offline?', 'Faça um resumo da minha conta.', 'Quais são os 5 maiores arquivos?', 'Quais arquivos não estão em nenhuma lista?', 'O que mudou hoje?', 'Como criar zonas?'];
 function qDraw() {
   const o = $('#qo'); if (!o) return; const A = Q.mode === 'assistente';
-  o.innerHTML = `<div class="qp"><div class="qh"><button class="tab ${A ? '' : 'on'}" onclick="Q.mode='buscar';Q.ans='';qDraw()">🔍 Buscar</button><button class="tab ${A ? 'on' : ''}" onclick="Q.mode='assistente';Q.ans='';qDraw()">✦ Assistente</button>
-    <input id="qi" autocomplete="off" placeholder="${A ? 'Faça uma pergunta sobre a sua conta' : 'Buscar telas, arquivos, listas e layouts'}" value="${esc(Q.q)}" oninput="Q.q=this.value;qUpd()" onkeydown="if(event.key==='Enter')qEnter()"><button class="p" onclick="qEnter()">↑</button></div>
-    <div class="qb" id="qb"></div><div class="qf"><span>${A ? 'Assistente simples: responde perguntas comuns sobre telas, arquivos e listas. Não altera nada.' : 'Dica: aperte / para buscar e ? para o assistente.'}</span><span>Esc fechar</span></div></div>`;
+  o.innerHTML = `<div class="qp"><div class="qh"><button class="tab ${A ? '' : 'on'}" onclick="Q.mode='buscar';Q.q='';qDraw()">🔍 Buscar</button><button class="tab ${A ? 'on' : ''}" onclick="Q.mode='assistente';Q.q='';qDraw()">✦ Assistente</button>
+    <input id="qi" autocomplete="off" placeholder="${A ? 'Pergunte qualquer coisa sobre a sua conta ou como usar o painel' : 'Buscar telas, arquivos, listas e layouts'}" value="${esc(Q.q)}" oninput="Q.q=this.value;qUpd()" onkeydown="if(event.key==='Enter')qEnter()"><button class="p" onclick="qEnter()">↑</button></div>
+    <div class="qb" id="qb"></div><div class="qf"><span>${A ? 'Assistente local: consulta o painel e explica como usar. Não altera nada e não usa IA externa.' : 'Dica: aperte / para buscar e ? para o assistente.'}</span><span>Esc fechar</span></div></div>`;
   qUpd(); setTimeout(() => { const i = $('#qi'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 20);
 }
 function qUpd() {
   const b = $('#qb'); if (!b) return;
-  if (Q.mode === 'assistente') { b.innerHTML = (Q.ans ? `<div class="qa">${Q.ans}</div>` : '') + `<div class="sug">${['Quais telas estão offline?', 'Quais são os 5 maiores arquivos?', 'Faça um resumo da minha conta.'].map(t => `<button onclick="Q.q='${t}';qAsk()">${t}</button>`).join('')}</div>`; return; }
-  const q = Q.q.trim().toLowerCase(); if (q.length < 2) { b.innerHTML = '<p class="mut">Digite para buscar telas, arquivos, listas de reprodução e layouts de zonas.</p>'; return; }
-  const hit = (a, f) => a.filter(x => f(x).toLowerCase().includes(q)).slice(0, 6);
-  const G = [['🖥 Telas', hit(S.screens, s => s.name + ' ' + tagNames(s)).map(s => [`qGo('t','${s.id}')`, s.name, ST[stOf(s)]])], ['🖼 Arquivos', hit(S.media, m => m.name).map(m => [`qGo('f','${m.id}')`, m.name, KN[kind(m)] + ' · ' + fsize(m.size)])],
-    ['☰ Listas', hit(S.playlists, p => p.name).map(p => [`qGo('l','${p.id}')`, p.name, p.items.length + ' itens'])], ['▦ Zonas', hit(S.layouts || [], l => l.name).map(l => [`qGo('z','${l.id}')`, l.name, l.h.zones.length + ' zonas'])]].filter(g => g[1].length);
-  b.innerHTML = G.length ? G.map(([t, a]) => `<div class="mut sm up">${t}</div>${a.map(([f, n, s]) => `<div class="qr" onclick="${f}"><span>${esc(n)}</span><span class="mut sm">${esc(s)}</span></div>`).join('')}`).join('') : '<p class="mut">Nada encontrado.</p>';
+  if (Q.mode === 'assistente') {
+    const sg = (Q.sug && Q.sug.length ? Q.sug : QSUG).slice(0, 6);
+    b.innerHTML = (Q.log.length ? Q.log.map(m => `<div class="qm me">${esc(m.q)}</div><div class="qm bot">${m.a}</div>`).join('') : '<div class="qm bot">Olá! Sou a assistente do Guará Play. Pergunte sobre as suas telas, arquivos, listas e zonas, ou peça ajuda para configurar algo. Digite <b>ajuda</b> para ver exemplos.</div>') + `<div class="sug">${sg.map(x => `<button data-q="${esc(x)}" onclick="Q.q=this.dataset.q;qAsk()">${esc(x)}</button>`).join('')}</div>`;
+    b.scrollTop = b.scrollHeight; return;
+  }
+  const q = nz(Q.q); if (q.length < 2) { b.innerHTML = '<p class="mut">Digite para buscar telas, arquivos, listas de reprodução e layouts de zonas.</p>'; return; }
+  const hit = (a, f) => a.filter(x => nz(f(x)).includes(q)).slice(0, 6);
+  const G = [['🖥 Telas', hit(S.screens, s => s.name + ' ' + tagNames(s)).map(s => [`qGo('t','${s.id}')`, s.name, ST[stOf(s)]])], ['🖼 Arquivos', hit(S.media, m => m.name + ' ' + tagNames(m)).map(m => [`qGo('f','${m.id}')`, m.name, KN[kind(m)] + ' · ' + fsize(m.size)])],
+    ['☰ Listas', hit(S.playlists, p => p.name + ' ' + tagNames(p)).map(p => [`qGo('l','${p.id}')`, p.name, p.items.length + ' itens'])], ['▦ Zonas', hit(S.layouts || [], l => l.name).map(l => [`qGo('z','${l.id}')`, l.name, l.h.zones.length + ' zonas'])]].filter(g => g[1].length);
+  b.innerHTML = G.length ? G.map(([t, a]) => `<div class="mut sm up">${t}</div>${a.map(([f, n, s]) => `<div class="qr" onclick="${f}"><span>${esc(n)}</span><span class="mut sm">${esc(s)}</span></div>`).join('')}`).join('') : '<p class="mut">Nada encontrado. Experimente o <a href="javascript:void 0" onclick="Q.mode=\'assistente\';qDraw()">Assistente</a>.</p>';
 }
 function qGo(k, id) {
   qClose(); const h = { t: '#/telas', f: '#/arquivos', l: '#/listas/' + id, z: '#/zonas/' + id }[k];
   if (location.hash === h) route(); else location.hash = h; if (k === 't') setTimeout(() => editScreen(id), 200);
 }
-function qAsk() { Q.ans = qAnswer(Q.q); qDraw(); }
-function qEnter() { if (Q.mode === 'assistente') qAsk(); else { const r = $('#qb .qr'); if (r) r.click(); } }
-function qAnswer(t) {
-  t = t.toLowerCase(); const sc = S.screens, ul = a => '<ul>' + a.map(x => `<li>${x}</li>`).join('') + '</ul>';
-  if (/offline|fora do ar|sem comunic|caiu|problema|alerta/.test(t)) { const a = sc.filter(s => ['bad', 'warn'].includes(stOf(s))); return a.length ? `<b>${a.length} ${a.length > 1 ? 'telas com problema' : 'tela com problema'}:</b>` + ul(a.map(s => `${esc(s.name)} — ${ST[stOf(s)].toLowerCase()} (${ago(s.seen)})`)) : 'Nenhuma tela com problema agora. 👍'; }
-  if (/maior|maiores|pesad|espa[cç]o|tamanho/.test(t)) { const a = [...S.media].sort((x, y) => (y.size || 0) - (x.size || 0)).slice(0, 5); return a.length ? '<b>Os 5 maiores arquivos:</b>' + ul(a.map(m => `${esc(m.name)} — ${fsize(m.size)}`)) : 'Ainda não há arquivos.'; }
-  if (/resum|geral|vis[aã]o/.test(t)) { const c = { ok: 0, warn: 0, bad: 0, off: 0 }; sc.forEach(s => c[stOf(s)]++); return '<b>Resumo da conta:</b>' + ul([`${sc.length} telas (${c.ok} online, ${c.warn} em alerta, ${c.bad} offline)`, `${S.media.length} arquivos, ${fsize(S.media.reduce((a, m) => a + (m.size || 0), 0))} usados`, `${S.playlists.length} listas de reprodução`, `${(S.layouts || []).length} layouts de zonas`]); }
-  if (/lista/.test(t)) return S.playlists.length ? '<b>Listas de reprodução:</b>' + ul(S.playlists.map(p => `${esc(p.name)} — ${p.items.length} itens, ${sc.filter(s => usesPl(s, p.id)).length} tela(s)`)) : 'Você ainda não criou listas.';
-  if (/zona|layout/.test(t)) return (S.layouts || []).length ? '<b>Layouts de zonas:</b>' + ul(S.layouts.map(l => `${esc(l.name)} — ${l.h.zones.length} zonas (horizontal), ${l.v.zones.length} (vertical)`)) : 'Você ainda não criou layouts de zonas.';
-  if (/tela/.test(t)) return sc.length ? '<b>Telas:</b>' + ul(sc.map(s => `${esc(s.name)} — ${ST[stOf(s)].toLowerCase()}`)) : 'Nenhuma tela vinculada ainda.';
-  return 'Ainda não sei responder isso. Tente: <i>Quais telas estão offline?</i>, <i>Quais são os 5 maiores arquivos?</i> ou <i>Faça um resumo da minha conta.</i>';
+async function qAsk() {
+  const t = Q.q.trim(); if (!t) return; Q.q = ''; Q.log.push({ q: t, a: '<span class="mut">pensando…</span>' }); qDraw();
+  let a; try { a = await aiAnswer(t); } catch (e) { a = 'Tive um problema ao responder: ' + esc(e.message); }
+  Q.log[Q.log.length - 1].a = a; if (Q.log.length > 30) Q.log.shift(); qDraw();
 }
+function qEnter() { if (Q.mode === 'assistente') qAsk(); else { const r = $('#qb .qr'); if (r) r.click(); } }
+
+/* ---- o "cérebro" do assistente: entende o texto (sem acento, com erros de digitação), acha nomes citados e responde ---- */
+const nz = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+const lev = (a, b) => { if (Math.abs(a.length - b.length) > 2) return 9; const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; };
+const QSTOP = new Set('de da do das dos a o as os na no nas nos em para por com e ou que qual quais tela telas lista listas arquivo arquivos video videos imagem imagens zona zonas layout layouts widget um uma esta estao onde uso usado tem mais menos'.split(' '));
+function qPick(t, list, nameOf) { // acha na pergunta o item citado pelo nome (aceita nome parcial e pequenos erros)
+  const qt = t.split(' '); let best = null, bs = 0;
+  list.forEach(x => { const n = nz(nameOf(x)); if (!n) return; let sc = 0;
+    if ((' ' + t + ' ').includes(' ' + n + ' ')) sc = 200 + n.length;
+    else { let tk = n.split(' ').filter(w => w.length > 1 && !QSTOP.has(w)); if (!tk.length) tk = n.split(' ');
+      const hit = tk.filter(w => qt.some(q => q === w || (w.length >= 5 && q.length >= 5 && lev(q, w) <= 1))).length;
+      if (hit && (hit === tk.length || (hit >= 2 && hit / tk.length >= .6) || tk.some(w => w.length >= 5 && qt.includes(w)))) sc = 100 * hit / tk.length + hit; }
+    if (sc > bs) { bs = sc; best = x; } });
+  return best;
+}
+const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+const aL = (h, l) => `<a href="${h}" onclick="qClose()">${l}</a>`, aX = (fn, l) => `<a href="javascript:void 0" onclick="${fn}">${l}</a>`;
+const qul = a => '<ul>' + a.map(x => `<li>${x}</li>`).join('') + '</ul>';
+const eS = s => aX(`qGo('t','${s.id}')`, esc(s.name)), eF = m => aX(`qGo('f','${m.id}')`, esc(m.name)), eP = p => aX(`qGo('l','${p.id}')`, esc(p.name)), eL = l => aX(`qGo('z','${l.id}')`, esc(l.name));
+const zsum = z => z.content ? (z.content.type === 'file' ? ((media(z.content.mediaId) || {}).name || 'arquivo removido') : wsum(z.content.item)) : ((plOf(z.playlistId) || {}).name || 'sem lista');
+const sCont = s => { const l = lyOf(s.layoutId), p = plOf(s.playlistId); return l ? `layout de zonas ${eL(l)}` : p ? `lista ${eP(p)}` : 'nenhum conteúdo'; };
+const schTxt = s => s.schedule && s.schedule.days && s.schedule.days.length ? `${s.schedule.days.map(d => DIAS[d]).join(', ')}, das ${s.schedule.start} às ${s.schedule.end}` : 'sempre (sem horário definido)';
+const mediaUse = m => { const ls = S.playlists.filter(p => p.items.some(i => i.mediaId === m.id)), zs = []; (S.layouts || []).forEach(l => [['h', 'horizontal'], ['v', 'vertical']].forEach(([o, n]) => l[o].zones.forEach((z, i) => { if (z.content && z.content.type === 'file' && z.content.mediaId === m.id) zs.push([l, n, i + 1]); }))); return { ls, zs }; };
+const unusedMedia = () => S.media.filter(m => { const u = mediaUse(m); return !u.ls.length && !u.zs.length; });
+const aiHelp = () => '<b>Posso ajudar com:</b>' + qul(['<b>Telas:</b> “Quais telas estão offline?”, “A tela X está online?”, “O que está passando na tela X?”, “Quantas telas verticais eu tenho?”', '<b>Arquivos:</b> “Os 5 maiores arquivos”, “Arquivos que não estão em nenhuma lista”, “Onde o arquivo X é usado?”, “Quantos vídeos tenho?”', '<b>Listas e zonas:</b> “O que tem na lista X?”, “Quais telas usam a lista X?”, “Quais listas estão vazias?”, “Quais layouts de zonas eu tenho?”', '<b>Histórico:</b> “O que mudou hoje?”, “Qual a disponibilidade nas últimas 24 horas?”, “Qual conteúdo mais tocou esta semana?”', '<b>Como fazer:</b> “Como vincular uma tela?”, “Como criar zonas?”, “Como configurar o clima?”, “Como acessar de outro lugar?”, “A tela ficou preta, e agora?”', '<b>Atalhos:</b> “abrir status”, “criar lista”, “vincular tela”']);
+const KB = [
+  { k: ['vincular', 'parear', 'pareamento', 'codigo de 6', 'codigo da tela', 'adicionar tela', 'nova tela', 'conectar tela'], a: () => `<b>Vincular uma tela</b>${qul([`No aparelho, abra <b>${esc(location.origin)}/player.html</b> (ou o app Guará Play). Aparece um código de 6 dígitos.`, `No painel, ${aL('#/telas', 'Telas')} → <b>Vincular tela</b>.`, 'Digite o código, dê um nome e escolha a lista de reprodução ou o layout de zonas.', 'Em poucos segundos o aparelho baixa o conteúdo e começa a tocar.'])}${aX('qClose();pairScreen()', '▶ Abrir “Vincular tela” agora')}` },
+  { k: ['instalar app', 'instalar o app', 'apk', 'app android', 'tv box', 'baixar o app', 'aplicativo', 'gerar o app'], a: () => `<b>App Android (TV Box ou celular)</b>${qul(['Gere o APK com <code>build-apk.sh</code> (ou pelo GitHub Actions) e instale no aparelho.', 'Na primeira abertura, digite o endereço do servidor (ex.: https://seudominio.duckdns.org).', 'Para trocar o servidor depois: aperte <b>Voltar 5 vezes</b> (ou a tecla Menu), digite o PIN e escolha trocar o servidor.', 'O app baixa tudo para o aparelho e continua tocando mesmo sem internet.'])}` },
+  { k: ['enviar arquivo', 'enviar videos', 'enviar video', 'enviar imagens', 'como enviar', 'subir arquivo', 'upload', 'adicionar arquivo', 'formatos', 'formato de video', 'tamanho maximo', 'limite de tamanho', 'mp4'], a: () => `<b>Enviar arquivos</b>${qul([`Vá em ${aL('#/arquivos', 'Arquivos')} → <b>Adicionar arquivos</b> (aceita vários de uma vez).`, 'Formatos: JPG, PNG, GIF, WEBP (imagens) e MP4, WEBM, MOV, M4V (vídeos).', 'Limite de 1 GB por arquivo. Para TV Box, prefira <b>MP4 com H.264</b>, 1080p e bitrate moderado (4 a 6 Mbps).', 'Os vídeos tocam na duração real; para imagens você escolhe o tempo na lista.'])}` },
+  { k: ['criar lista', 'nova lista', 'montar lista', 'lista de reproducao', 'playlist', 'adicionar na lista', 'ordem dos itens', 'reordenar', 'duracao da imagem', 'tempo da imagem'], a: () => `<b>Criar uma lista de reprodução</b>${qul([`${aL('#/listas/nova', 'Listas → Criar lista')}, dê um nome.`, 'Na galeria, clique nos arquivos para adicionar. Também há Relógio, Clima e Notícias.', 'Ajuste o tempo (segundos) de cada imagem e use as setas ↑ ↓ para mudar a ordem.', 'Clique em <b>Salvar lista</b>. Depois escolha a lista na configuração da tela.'])}` },
+  { k: ['zona', 'zonas', 'dividir a tela', 'dividir tela', 'varias areas', 'layout de zonas', 'editor de zonas', 'tela dividida', 'barra inferior'], a: () => `<b>Zonas (tela dividida)</b>${qul([`Vá em ${aL('#/zonas/novo', 'Zonas → Novo layout')}. Escolha um modelo (ex.: principal + lateral + faixa) ou use <b>+ Zona</b>.`, 'Arraste para mover e puxe o canto para redimensionar. Há um desenho <b>horizontal</b> e outro <b>vertical</b>.', 'Em cada zona escolha: <b>Lista de reprodução</b>, <b>Arquivo</b> (com zoom e posição) ou <b>Widget</b> (relógio, clima, notícias).', 'Salve e, em <b>Telas → editar</b>, escolha o “Layout de zonas”. A tela usa o desenho horizontal quando está deitada e o vertical quando está em pé.'])}` },
+  { k: ['arquivo direto na zona', 'arquivo na zona', 'zoom', 'posicao da imagem', 'redimensionar imagem', 'enquadrar'], a: () => `<b>Arquivo direto numa zona</b>${qul(['No editor de zonas, em <b>Conteúdo da zona</b> escolha <b>Arquivo</b> e selecione a mídia.', '<b>Zoom</b> aumenta ou reduz a mídia dentro da zona; <b>Posição</b> escolhe qual parte aparece (centro, topo, base…).', '<b>Ajuste</b> define se a mídia é contida, preenche (corta) ou estica. Imagem fica parada; vídeo repete sem parar.'])}` },
+  { k: ['clima', 'previsao do tempo', 'temperatura', 'widget de clima', 'tempo de hoje', 'open meteo'], a: () => `<b>Widget de clima</b>${qul(['Em uma lista: botão <b>Clima</b> na galeria. Em uma zona: Conteúdo = Widget → Clima → Configurar.', 'Busque a cidade e escolha o resultado; dá para mudar cores, fonte, tamanho do texto e ligar a previsão dos próximos dias.', 'Os dados vêm do Open-Meteo (gratuito para uso não comercial; pede crédito) e atualizam a cada 15 minutos. Sem internet, mostra o último valor.'])}` },
+  { k: ['noticias', 'noticia', 'rss', 'feed', 'manchete', 'faixa rolando', 'ticker', 'g1', 'cnn'], a: () => `<b>Widget de notícias</b>${qul(['Em uma lista: botão <b>Notícias</b>. Em uma zona: Conteúdo = Widget → Notícias → Configurar.', 'Informe até 5 feeds RSS (há atalhos de CNN Brasil, Agência Brasil e G1) e use <b>Testar</b> para conferir.', 'Modo <b>faixa rolando</b> (barra inferior) ou <b>slides</b> (uma manchete por vez). Velocidade, cores, rótulo e tamanho são configuráveis.'])}` },
+  { k: ['girar', 'rotacao', 'rotacionar', 'tela em pe', 'tv em pe', 'tela virada', 'orientacao', 'girar a tela'], a: () => `<b>Tela na vertical / girar</b>${qul(['Em <b>Telas → editar → Rotação</b> escolha 0°, 90°, 180° ou 270°.', 'TV montada em pé: use 90° ou 270° (conforme o lado). Layouts de zonas usam o desenho vertical quando a tela está em pé.'])}` },
+  { k: ['horario de funcionamento', 'horario da tela', 'ligar e desligar', 'fora do horario', 'dias da semana', 'agendar'], a: () => `<b>Horário de funcionamento</b>${qul(['Em <b>Telas → editar</b> defina os dias e o intervalo de horas (aceita virar a meia-noite).', 'Fora do horário, a tela sem comunicação aparece em cinza e <b>não conta como problema</b>. A disponibilidade é calculada só dentro do horário.'])}` },
+  { k: ['etiqueta', 'etiquetas', 'pasta', 'pastas', 'organizar', 'categorizar', 'tags', 'agrupar por cliente'], a: () => `<b>Etiquetas (pastas)</b>${qul(['Em Telas, Arquivos e Listas há o gerenciador de etiquetas: crie com nome e cor e aplique nos itens.', 'Use filtros por etiqueta para achar rápido. Ótimo para separar por <b>cliente</b> (ex.: “Academia”, “Restaurante”).'])}` },
+  { k: ['capturar', 'captura de tela', 'print da tela', 'screenshot', 'ver o que esta passando', 'foto da tela'], a: () => `<b>Captura de tela</b>${qul(['Em <b>Telas</b>, use o botão de captura na linha da tela. O aparelho tira um print em poucos segundos e o painel mostra.', 'A captura mostra as mídias de todas as zonas; widgets aparecem de forma aproximada.'])}` },
+  { k: ['relatorio', 'relatorios', 'horas de exibicao', 'tempo de exibicao', 'comprovante', 'proof of play', 'exportar', 'csv', 'planilha'], a: () => `<b>Relatórios de exibição</b>${qul([`Em ${aL('#/relatorios', 'Relatórios')} veja as horas de exibição por tela e por conteúdo, por dia, semana ou mês.`, 'Filtre por tela ou conteúdo e use <b>Exportar CSV</b> para abrir no Excel (serve como comprovante para clientes).', 'Cada tela envia os dados a cada minuto; sem internet, guarda e envia depois.'])}` },
+  { k: ['significado das cores', 'cores do status', 'o que significa verde', 'o que significa laranja', 'o que significa vermelho', 'cinza', 'em verificacao', 'status das telas'], a: () => `<b>Cores do status</b>${qul(['<b>Verde — online:</b> a tela falou com o servidor há menos de ~45 segundos.', '<b>Laranja — em verificação:</b> sem contato há algum tempo (até ~3 minutos).', '<b>Vermelho — sem comunicação:</b> sem contato por mais tempo (ou nunca conectou).', '<b>Cinza — fora do horário:</b> sem comunicação, mas dentro do período em que a tela deveria estar desligada.'])}${aL('#/status', 'Abrir Status')}` },
+  { k: ['sem internet', 'offline', 'sem rede', 'caiu a internet', 'funciona sem internet', 'cai a internet', 'queda de internet'], a: () => `<b>Sem internet</b>${qul(['O app guarda todas as mídias no aparelho e <b>continua tocando</b> sem internet, inclusive depois de reiniciar.', 'Quando a rede volta, ele sincroniza sozinho e envia os relatórios de exibição pendentes.', 'Widgets de clima e notícias mostram o último valor recebido.'])}` },
+  { k: ['acessar de fora', 'acessar de qualquer lugar', 'outra rede', 'hospedar', 'hospedagem', 'duckdns', 'dominio', 'https', 'internet publica', 'colocar no ar', 'servidor na nuvem', 'vps', 'notebook como servidor', 'cgnat', 'porta 80'], a: () => `<b>Acessar o servidor de qualquer lugar</b>${qul(['Você precisa de um <b>endereço fixo</b> (DuckDNS é grátis), um <b>IP público</b> (sem CGNAT) e as portas 80 e 443 redirecionadas no roteador para o computador do servidor.', 'No computador (Ubuntu), o script <code>setup-server.sh</code> instala tudo com HTTPS automático: <code>DOMAIN=seu.duckdns.org ADMIN_PASS=\'senha\' bash setup-server.sh</code>.', 'Se a operadora usar CGNAT, peça IP público ou use uma VPS (cerca de 6 € por mês).', 'O passo a passo completo está no arquivo HOSPEDAGEM-NOTEBOOK.md, na pasta do projeto.'])}` },
+  { k: ['backup', 'copia de seguranca', 'restaurar', 'perder os dados', 'salvar os dados', 'recuperar'], a: () => `<b>Backup</b>${qul(['Tudo fica em <code>data.json</code> (telas, listas, layouts), <code>stats.json</code> (relatórios) e na pasta <code>media/</code> (arquivos).', 'Use <code>bash backup.sh</code> (ou agende no cron, todo dia às 3h). Para restaurar: <code>bash restore.sh ARQUIVO.tar.gz</code>. Copie os backups para outro lugar pelo menos uma vez por semana.'])}` },
+  { k: ['senha', 'seguranca', 'trocar a senha', 'esqueci a senha', 'bloqueado', 'tentativas', 'login', 'alterar senha'], a: () => `<b>Senha e segurança</b>${qul(['A senha do painel é definida na variável <code>ADMIN_PASS</code> ao iniciar o servidor (no serviço, em <code>/etc/guara.env</code>). Para trocar, edite e reinicie.', 'Depois de 8 tentativas erradas, o IP fica bloqueado por 15 minutos.', 'Use HTTPS (domínio) e uma senha forte antes de abrir o servidor para a internet.'])}` },
+  { k: ['atualizar o app', 'atualizar app', 'nova versao do app', 'pin', 'menu de manutencao', 'trocar o servidor', 'mudar o servidor'], a: () => `<b>Menu de manutenção do app</b>${qul(['Aperte <b>Voltar 5 vezes</b> (ou a tecla Menu do controle) e digite o PIN definido na compilação.', 'Lá você vê o servidor, o ID do aparelho, a última sincronização e o último erro, e pode trocar o servidor.', 'Para atualizar o app, recompile o APK e instale por cima (use sempre a mesma <code>guara.keystore</code>).'])}` },
+  { k: ['quiosque', 'travar o app', 'device owner', 'bloquear o aparelho', 'impedir desinstalar', 'modo admin'], a: () => `<b>Modo quiosque</b>${qul(['Trava o app na tela e impede desinstalar ou trocar de app. Faça por último, no aparelho de uso.', 'Requer o aparelho sem conta Google e com depuração USB: <code>adb shell dpm set-device-owner br.com.guaraplay.player/.AdminReceiver</code>.'])}` },
+  { k: ['tela preta', 'ficou preta', 'tela escura', 'preta', 'nao aparece', 'nao toca', 'nao exibe', 'nao mostra', 'travou', 'travada', 'congelou', 'conectando', 'aguardando o servidor', 'nao funciona', 'bugado', 'com problema', 'zona preta', 'video nao toca', 'sem conteudo na tela'], a: () => `<b>A tela não mostra o conteúdo?</b>${qul(['<b>“Conectando…”:</b> confira o endereço do servidor no menu de manutenção (Voltar 5x + PIN) e se o servidor está ligado e liberado no firewall.', '<b>Código de 6 dígitos na tela:</b> falta vincular em Telas → Vincular tela.', '<b>“Playlist vazia”:</b> a tela não tem lista ou layout, ou a lista está vazia. Confira em Telas → editar.', '<b>Zona preta:</b> a zona está sem lista/arquivo/widget; abra o editor de zonas e escolha o conteúdo.', '<b>Vídeo não toca:</b> use MP4 H.264. Vários vídeos ao mesmo tempo podem passar do limite de decodificadores de TV Box; deixe só uma zona com vídeo.', 'Veja também ' + aL('#/status', 'Status') + ' para saber se a tela está se comunicando.'])}` },
+  { k: ['atalho', 'atalhos', 'teclado', 'ctrl k', 'como buscar', 'como pesquisar', 'pesquisar'], a: () => `<b>Atalhos</b>${qul(['<b>/</b> abre a busca; <b>?</b> abre o assistente; <b>Ctrl+K</b> também abre a busca; <b>Esc</b> fecha.', 'O botão ⇤ no menu recolhe a barra lateral.'])}` },
+  { k: ['varios clientes', 'multi cliente', 'contrato', 'estabelecimento', 'separar clientes', 'cada cliente', 'login do cliente', 'acesso do cliente'], a: () => `<b>Vários clientes (estabelecimentos)</b>${qul(['Hoje há <b>um painel e uma senha</b>. Separe os clientes com <b>etiquetas</b> (uma por cliente) em telas, arquivos e listas.', 'Para cada cliente você pode usar um layout de zonas próprio e extrair o relatório de exibição em CSV.', 'Contas separadas por cliente (login próprio) ainda não existem; dá para criar numa próxima etapa.'])}` },
+  { k: ['som', 'audio', 'volume', 'sem som', 'mutar'], a: () => `<b>Som</b>${qul(['Em <b>Telas → editar</b>, marque “Som”. Com zonas, só a <b>maior zona</b> toca o áudio dos vídeos.'])}` },
+  { k: ['ajuste da midia', 'conter', 'preencher', 'esticar', 'cortando', 'cortada', 'barras pretas'], a: () => `<b>Ajuste da mídia</b>${qul(['<b>Conter:</b> mostra tudo, podem sobrar barras pretas. <b>Preencher:</b> cobre a tela cortando as bordas. <b>Esticar:</b> deforma para ocupar tudo.', 'Configure em Telas → editar (para a tela toda) ou por zona no editor de zonas.'])}` },
+  { k: ['nome do usuario', 'meu nome', 'mudar o nome', 'saudacao', 'perfil'], a: () => `<b>Seu nome</b>${qul([`Em ${aL('#/conta', 'Minha conta')} → Informações pessoais. O nome aparece na saudação e nas alterações recentes.`])}` },
+  { k: ['modo escuro', 'tema escuro', 'tema claro', 'modo claro', 'tema', 'escuro', 'claro'], a: () => `<b>Tema</b>${qul(['O botão ☾/☀ no rodapé do menu alterna entre claro e escuro.'])}` },
+  { k: ['remover tela', 'apagar tela', 'excluir tela', 'remover arquivo', 'apagar arquivo', 'excluir arquivo', 'remover lista', 'apagar lista', 'excluir lista', 'deletar'], a: () => `<b>Remover itens</b>${qul(['Cada tela, arquivo, lista e layout tem o botão <b>Remover</b>. Remover um arquivo tira ele das listas; remover uma lista deixa as telas dela sem conteúdo.', 'Remover uma tela do painel faz o aparelho voltar a pedir um novo código de pareamento.'])}` },
+  { k: ['converter video', 'conversao', 'video pesado', 'video grande', 'comprimir', 'reduzir o tamanho'], a: () => `<b>Vídeos pesados</b>${qul(['Exporte em MP4 (H.264), 1080p, 4 a 6 Mbps. Vídeos menores baixam mais rápido e tocam melhor em TV Box.', 'Ferramentas gratuitas: HandBrake ou ffmpeg (<code>ffmpeg -i entrada.mov -c:v libx264 -crf 23 -vf scale=-2:1080 saida.mp4</code>).'])}` },
+];
+function kbFind(t, min) { let best = null, bs = 0; KB.forEach(e => { let sc = 0; e.k.forEach(w => { if ((' ' + t + ' ').includes(' ' + w + ' ')) sc += w.length >= 8 ? 2 : 1.2; }); if (sc > bs) { bs = sc; best = e; } }); return bs >= min ? best : null; }
+const PAGES = { inicio: ['Início', 'inicio painel home dashboard'], telas: ['Telas', 'telas tela'], arquivos: ['Arquivos', 'arquivos arquivo midias'], listas: ['Listas de Reprodução', 'listas lista playlists playlist'], zonas: ['Zonas', 'zonas zona layouts layout'], relatorios: ['Relatórios', 'relatorios relatorio'], status: ['Status', 'status'], conta: ['Minha conta', 'conta perfil'] };
+
+async function aiAnswer(raw) {
+  const t = nz(raw), ws = t.split(' '), has = (...k) => k.some(w => t.includes(w)); Q.sug = null;
+  if (!t) return aiHelp();
+  const how = /^(como|onde|qual passo|passo a passo|me ensina|ensina|tutorial|posso|consigo|tem como|e possivel|o que e|oque e|para que serve|pra que serve|por que|porque|o que fazer|o que acontece|preciso|quero aprender|explica|explique|me explica)\b/.test(t);
+  // conversa
+  if (/^(oi|ola|opa|e ai|eae|hello|bom dia|boa tarde|boa noite|tudo bem)\b/.test(t) && ws.length <= 4) return 'Olá! 👋 Em que posso ajudar? Pergunte sobre suas telas, arquivos, listas e zonas, ou diga o que quer configurar.';
+  if (/^(obrigad|brigad|valeu|vlw|show|perfeito|legal)/.test(t) && ws.length <= 4) return 'De nada! Se precisar de mais alguma coisa, é só perguntar. 😊';
+  if (ws.length <= 8 && has('quem e voce', 'o que voce faz', 'o que voce sabe', 'ajuda', 'help', 'o que posso perguntar', 'comandos', 'exemplos', 'me ajuda')) return aiHelp();
+  // abrir páginas e ações
+  const nm = t.match(/^(abrir|abra|abre|ir para|ir pra|va para|vai para|me leve para|me leva para|me leve|me leva|mostrar|mostre|mostra|quero ver|ver|acessar|acesse)\s+(?:a |o |as |os |na |no |pagina |pagina de |tela de |aba |menu |minha )*(.+)$/);
+  if (nm) { const rest = nm[2].trim(), pg = Object.entries(PAGES).find(([k, [, w]]) => w.split(' ').includes(rest)); if (pg) { setTimeout(() => { qClose(); location.hash = '#/' + pg[0]; }, 500); return `Abrindo <b>${pg[1][0]}</b>…`; } }
+  const act = t.match(/^(criar|crie|nova|novo|adicionar|adicione|vincular|vincule|parear|cadastrar)\s+(?:uma |um |a |o )*(.+)$/);
+  if (act) { const r = act[2]; if (/^(lista|playlist)/.test(r)) return `Vamos criar uma lista: ${aL('#/listas/nova', '▶ Abrir “Criar lista”')}`; if (/^(layout|zona)/.test(r)) return `Para criar zonas: ${aL('#/zonas/novo', '▶ Abrir o editor de zonas')}`; if (/^(tela|aparelho|tv)/.test(r)) return `${aX('qClose();pairScreen()', '▶ Abrir “Vincular tela”')} (o aparelho precisa estar mostrando o código de 6 dígitos).`; if (/^(arquivo|video|imagem|midia)/.test(r)) return `${aX("qClose();location.hash='#/arquivos';setTimeout(()=>$('#fi')&&$('#fi').click(),150)", '▶ Escolher arquivos para enviar')}`; }
+  if (has('meu nome', 'quem sou eu')) return S.account && S.account.name ? `Você está como <b>${esc(S.account.name)}</b>.` : 'Você ainda não definiu seu nome. Em Minha conta → Informações pessoais.';
+  // etiqueta citada tem prioridade sobre a base de ajuda e sobre telas
+  const tagHit = qPick(t, S.tags || [], x => x.name);
+  const strong = (tagHit || /^(quais|quantas|quantos|qual|quem)\b/.test(t) || has('das telas', 'das minhas telas', 'de cada tela')) ? null : kbFind(t, 2); if (strong) return strong.a();
+  // como fazer
+  if (how) { const e = kbFind(t, 1.2); if (e) return e.a(); }
+  // entidades citadas
+  const ent = { s: qPick(t, S.screens, x => x.name), p: qPick(t, S.playlists, x => x.name), f: qPick(t, S.media, x => x.name), l: qPick(t, S.layouts || [], x => x.name), g: qPick(t, S.tags || [], x => x.name) };
+  const kw = { s: has(' tela', 'telas', 'aparelho', 'tv '), f: has('arquivo', 'video', 'imagem', 'midia', 'foto', 'imagens', 'fotos', 'videos'), p: has('lista', 'playlist'), l: has('zona', 'layout') };
+  if (has('onde', 'em qual', 'qual lista', 'esta usado', 'usado em', 'onde esta', 'onde tem')) kw.f = kw.f || !!ent.f;
+  const picked = Object.entries(ent).filter(([, v]) => v), pref = ['s', 'f', 'p', 'l'].find(k => kw[k] && ent[k]);
+  const use = pref ? [[pref, ent[pref]]] : picked.filter(([k]) => k !== 'g').slice(0, 2);
+  const stOnly = has('offline', 'fora do ar', 'sem comunic', 'caiu', 'problema', 'alerta', 'desconect', 'sem sinal', 'nao esta funcionando');
+  // resumo
+  if (has('resumo', 'visao geral', 'panorama', 'situacao geral', 'como esta tudo', 'como estao as coisas', 'resumir', 'balanco')) {
+    const c = { ok: 0, warn: 0, bad: 0, off: 0 }; S.screens.forEach(s => c[stOf(s)]++); Q.sug = ['Quais telas estão offline?', 'Quais arquivos não estão em nenhuma lista?', 'O que mudou hoje?'];
+    return '<b>Resumo da conta</b>' + qul([`${S.screens.length} telas: ${c.ok} online, ${c.warn} em verificação, ${c.bad} sem comunicação${c.off ? `, ${c.off} fora do horário` : ''}`, `${S.media.length} arquivos (${S.media.filter(m => kind(m) === 'video').length} vídeos), ${fsize(S.media.reduce((a, m) => a + (m.size || 0), 0))} usados`, `${S.playlists.length} listas de reprodução e ${(S.layouts || []).length} layouts de zonas`, unusedMedia().length ? `${unusedMedia().length} arquivo(s) fora de qualquer lista` : 'Todos os arquivos estão em uso'].filter(Boolean));
+  }
+  // telas com problema
+  if (stOnly && !use.some(([k]) => k === 's')) { const a = S.screens.filter(s => ['bad', 'warn'].includes(stOf(s))); Q.sug = ['Quais telas estão online?', 'Qual a disponibilidade nas últimas 24 horas?'];
+    return a.length ? `<b>${a.length} ${a.length > 1 ? 'telas com problema' : 'tela com problema'}:</b>` + qul(a.map(s => `${eS(s)} — ${ST[stOf(s)].toLowerCase()} (${ago(s.seen)})`)) + aL('#/status', 'Ver Status') : 'Nenhuma tela com problema agora. 👍'; }
+  if (has('online', 'funcionando', 'no ar', 'ligadas', 'conectadas') && kw.s && !use.some(([k]) => k === 's')) { const a = S.screens.filter(s => stOf(s) === 'ok'); return a.length ? `<b>${a.length} ${a.length > 1 ? 'telas online' : 'tela online'}:</b>` + qul(a.map(s => `${eS(s)} — ${sCont(s)}`)) : 'Nenhuma tela online neste momento.'; }
+  if (ent.g && (has('etiqueta', 'tag', 'pasta', 'marcador') || !use.length)) { const g = ent.g, has2 = r => (r.tags || []).includes(g.id); return `<b>Etiqueta ${esc(g.name)}</b>` + qul([`Telas: ${S.screens.filter(has2).map(eS).join(', ') || '—'}`, `Arquivos: ${S.media.filter(has2).map(eF).join(', ') || '—'}`, `Listas: ${S.playlists.filter(has2).map(eP).join(', ') || '—'}`]); }
+  // item citado
+  if (use.length) return use.map(([k, v]) => {
+    if (k === 's') { const st = stOf(v); Q.sug = ['Quais telas estão offline?', 'Como girar a tela?']; return `<b>${eS(v)}</b> — ${ST[st].toLowerCase()} (${ago(v.seen)})` + qul([`Conteúdo: ${sCont(v)}`, `Plataforma: ${esc(v.platform || '—')} · ${(v.rotation || 0) % 180 ? 'vertical' : 'horizontal'} (rotação ${v.rotation || 0}°)`, `Funciona: ${schTxt(v)}`, `Som: ${v.sound ? 'ligado' : 'desligado'}`, `Ajuste da mídia: ${({ contain: 'conter', cover: 'preencher', fill: 'esticar' })[v.fit] || 'conter'}`]); }
+    if (k === 'f') { const u = mediaUse(v); return `<b>${eF(v)}</b> — ${KN[kind(v)]}, ${fsize(v.size)}${v.type === 'video' && v.duration ? ', ' + fdur(v.duration) : ''}` + qul([u.ls.length ? `Está nas listas: ${u.ls.map(eP).join(', ')}` : 'Não está em nenhuma lista', u.zs.length ? `Usado direto em zonas: ${u.zs.map(([l, o, n]) => `${eL(l)} (zona ${n}, ${o})`).join(', ')}` : '', `Telas que exibem: ${S.screens.filter(s => u.ls.some(p => usesPl(s, p.id))).map(eS).join(', ') || 'nenhuma'}`].filter(Boolean)); }
+    if (k === 'p') { const sc = S.screens.filter(s => usesPl(s, v.id)); return `<b>${eP(v)}</b> — ${v.items.length} ${v.items.length === 1 ? 'item' : 'itens'}, duração total ${fdur(plDur(v))}` + qul([`Itens: ${v.items.slice(0, 8).map(i => esc(nm2(i))).join(', ')}${v.items.length > 8 ? '…' : ''}` || 'vazia', `Telas que usam: ${sc.map(eS).join(', ') || 'nenhuma'}`]); }
+    if (k === 'l') { const sc = S.screens.filter(s => s.layoutId === v.id); return `<b>${eL(v)}</b> — ${v.h.zones.length} zonas (horizontal), ${v.v.zones.length} (vertical)` + qul([...v.h.zones.map((z, i) => `H · Zona ${i + 1}: ${esc(zsum(z))}`), `Telas que usam: ${sc.map(eS).join(', ') || 'nenhuma'}`]); }
+  }).join('<hr>');
+  // alterações recentes
+  if (has('alterac', 'mudou', 'mudanca', 'quem alterou', 'quem mexeu', 'quem fez', 'ultimas acoes', 'atividade', 'o que foi feito', 'historico de alter', 'ultimas mudancas')) {
+    const act2 = await api('activity?limit=40'), today = has('hoje'), a = act2.filter(x => !today || new Date(x.t).toDateString() === new Date().toDateString()).slice(0, 8);
+    return a.length ? `<b>${today ? 'Alterações de hoje' : 'Últimas alterações'}:</b>` + qul(a.map(x => `${hhmm(x.t)} (${new Date(x.t).toLocaleDateString('pt-BR')}) — <b>${esc(x.who)}</b> ${x.verb} ${x.noun} <b>${esc(x.name)}</b>`)) + aL('#/inicio', 'Ver no Início') : today ? 'Nenhuma alteração hoje.' : 'Ainda não há alterações registradas.';
+  }
+  // arquivos
+  if (kw.f || has('maiores', 'espaco', 'armazenamento')) {
+    const M = [...S.media]; if (!M.length) return 'Você ainda não enviou arquivos.';
+    const list = (a, h) => `<b>${h}</b>` + qul(a.map(m => `${eF(m)} — ${KN[kind(m)]}, ${fsize(m.size)}`)), nn = (t.match(/\b(\d{1,2})\b/) || [])[1], n = Math.min(20, +nn || 5);
+    if (has('nao esta', 'nao estao', 'sem uso', 'nao usad', 'orfao', 'fora de', 'em nenhuma', 'nenhuma lista', 'sobrando', 'parado')) { const a = unusedMedia(); return a.length ? `<b>${a.length} arquivo(s) fora de qualquer lista ou zona:</b>` + qul(a.map(m => `${eF(m)} (${fsize(m.size)})`)) : 'Todos os arquivos estão em uso. 👍'; }
+    if (has('duplicad', 'repetid', 'iguais')) { const g = {}; M.forEach(m => { const k = kind(m) + ':' + (m.size || 0); (g[k] = g[k] || []).push(m); }); const d = Object.values(g).filter(a => a.length > 1 && a[0].size); return d.length ? '<b>Possíveis duplicados (mesmo tipo e tamanho):</b>' + qul(d.map(a => a.map(eF).join(' = '))) : 'Não encontrei arquivos duplicados.'; }
+    if (has('maior', 'maiores', 'pesad', 'grande')) return list([...M].sort((a, b) => (b.size || 0) - (a.size || 0)).slice(0, n), `Os ${Math.min(n, M.length)} maiores arquivos`);
+    if (has('menor', 'menores', 'leve', 'pequen')) return list([...M].sort((a, b) => (a.size || 0) - (b.size || 0)).slice(0, n), `Os ${Math.min(n, M.length)} menores arquivos`);
+    if (has('recente', 'novo', 'ultimo', 'ultimos', 'enviad')) return list([...M].sort((a, b) => (b.created || 0) - (a.created || 0)).slice(0, n), `Os ${Math.min(n, M.length)} arquivos mais recentes`);
+    if (has('antigo', 'velho')) return list([...M].sort((a, b) => (a.created || 0) - (b.created || 0)).slice(0, n), `Os ${Math.min(n, M.length)} arquivos mais antigos`);
+    if (has('espaco', 'armazenamento', 'ocupa', 'usado', 'gb', 'mb')) { const by = ['video', 'image', 'gif'].map(k => [k, M.filter(m => kind(m) === k)]).filter(([, a]) => a.length); return `<b>Espaço utilizado: ${fsize(M.reduce((a, m) => a + (m.size || 0), 0))}</b>` + qul(by.map(([k, a]) => `${({ video: 'Vídeos', image: 'Imagens', gif: 'GIFs' })[k]}: ${a.length} (${fsize(a.reduce((s, m) => s + (m.size || 0), 0))})`)); }
+    if (has('quant', 'total', 'numero', 'tenho') || true) { const v = M.filter(m => kind(m) === 'video'), im = M.filter(m => kind(m) === 'image'), gf = M.filter(m => kind(m) === 'gif'); if (has('video')) return `Você tem <b>${v.length}</b> ${v.length === 1 ? 'vídeo' : 'vídeos'} (${fsize(v.reduce((a, m) => a + (m.size || 0), 0))}).`; if (has('imagem', 'foto')) return `Você tem <b>${im.length}</b> ${im.length === 1 ? 'imagem' : 'imagens'}.`; if (has('gif')) return `Você tem <b>${gf.length}</b> GIF(s) animado(s).`; return `Você tem <b>${M.length}</b> arquivos: ${v.length} vídeos, ${im.length} imagens e ${gf.length} GIFs (${fsize(M.reduce((a, m) => a + (m.size || 0), 0))}).`; }
+  }
+  // widgets
+  if (has('clima', 'previsao', 'noticia', 'rss', 'widget', 'relogio')) {
+    const W = []; S.playlists.forEach(p => p.items.forEach(i => { if (i.kind && i.kind !== 'media') W.push([i.kind, `lista ${eP(p)}`]); })); (S.layouts || []).forEach(l => [['h', 'horizontal'], ['v', 'vertical']].forEach(([o, n]) => l[o].zones.forEach((z, i) => { if (z.content && z.content.type === 'widget') W.push([z.content.item.kind, `zona ${i + 1} (${n}) de ${eL(l)}`]); })));
+    const want = has('clima', 'previsao') ? 'weather' : has('noticia', 'rss') ? 'news' : has('relogio') ? 'clock' : null, a = W.filter(([k]) => !want || k === want), nmw = { weather: 'Clima', news: 'Notícias', clock: 'Relógio' };
+    return a.length ? `<b>${want ? nmw[want] : 'Widgets'} em uso:</b>` + qul(a.map(([k, w]) => `${nmw[k]} — ${w}`)) : 'Nenhum widget em uso ainda. Veja como: pergunte “Como configurar o clima?”.';
+  }
+  // listas
+  if (kw.p) {
+    const P = S.playlists; if (!P.length) return 'Você ainda não criou listas de reprodução. ' + aL('#/listas/nova', 'Criar uma lista');
+    if (has('vazia', 'vazias', 'sem item', 'sem arquivo')) { const a = P.filter(p => !p.items.length); return a.length ? `<b>${a.length} lista(s) vazia(s):</b>` + qul(a.map(eP)) : 'Nenhuma lista vazia.'; }
+    if (has('sem tela', 'nao usad', 'nao esta', 'nao estao', 'sem uso', 'nenhuma tela', 'parada')) { const a = P.filter(p => !S.screens.some(s => usesPl(s, p.id))); return a.length ? `<b>${a.length} lista(s) que nenhuma tela usa:</b>` + qul(a.map(eP)) : 'Todas as listas estão em uso.'; }
+    if (has('maior', 'mais itens', 'maiores')) return `<b>Listas com mais itens:</b>` + qul([...P].sort((a, b) => b.items.length - a.items.length).slice(0, 5).map(p => `${eP(p)} — ${p.items.length} itens`));
+    if (has('menor', 'menos itens')) return `<b>Listas com menos itens:</b>` + qul([...P].sort((a, b) => a.items.length - b.items.length).slice(0, 5).map(p => `${eP(p)} — ${p.items.length} itens`));
+    if (has('duracao', 'longa', 'mais tempo', 'demorada', 'tempo total')) return `<b>Listas por duração:</b>` + qul([...P].sort((a, b) => plDur(b) - plDur(a)).slice(0, 5).map(p => `${eP(p)} — ${fdur(plDur(p))}`));
+    return `<b>${P.length} ${P.length === 1 ? 'lista' : 'listas'} de reprodução:</b>` + qul(P.map(p => `${eP(p)} — ${p.items.length} itens, ${fdur(plDur(p))}, ${S.screens.filter(s => usesPl(s, p.id)).length} tela(s)`));
+  }
+  // zonas
+  if (kw.l) { const Ls = S.layouts || []; return Ls.length ? `<b>${Ls.length} layout(s) de zonas:</b>` + qul(Ls.map(l => `${eL(l)} — ${l.h.zones.length} zonas (horizontal), ${l.v.zones.length} (vertical); usado em ${S.screens.filter(s => s.layoutId === l.id).length} tela(s)`)) : 'Você ainda não criou layouts de zonas. ' + aL('#/zonas/novo', 'Criar o primeiro'); }
+  // telas (geral)
+  if (kw.s || has('tv ', 'aparelhos')) {
+    const S2 = S.screens; if (!S2.length) return 'Nenhuma tela vinculada. ' + aX('qClose();pairScreen()', '▶ Vincular tela');
+    if (has('sem conteudo', 'sem lista', 'vazia', 'nao tem lista', 'sem layout')) { const a = S2.filter(s => !s.playlistId && !lyOf(s.layoutId)); return a.length ? `<b>${a.length} tela(s) sem conteúdo:</b>` + qul(a.map(eS)) : 'Todas as telas têm conteúdo.'; }
+    if (has('vertica')) { const a = S2.filter(s => (s.rotation || 0) % 180); return `<b>${a.length}</b> ${a.length === 1 ? 'tela vertical' : 'telas verticais'}${a.length ? ':' + qul(a.map(eS)) : '.'}`; }
+    if (has('horizontal', 'horizontai')) { const a = S2.filter(s => !((s.rotation || 0) % 180)); return `<b>${a.length}</b> ${a.length === 1 ? 'tela horizontal' : 'telas horizontais'}${a.length ? ':' + qul(a.map(eS)) : '.'}`; }
+    if (has('android', 'windows', 'plataforma', 'sistema')) return '<b>Telas por plataforma:</b>' + qul(['Android', 'Windows', 'Apple', 'Outro'].map(p => [p, S2.filter(s => (s.platform || '') === p)]).filter(([, a]) => a.length).concat(S2.some(s => !s.platform) ? [['Sem informação', S2.filter(s => !s.platform)]] : []).map(([p, a]) => `${p}: ${a.length} (${a.map(eS).join(', ')})`));
+    if (has('horario', 'funciona de', 'liga', 'desliga')) return '<b>Horário de funcionamento:</b>' + qul(S2.map(s => `${eS(s)} — ${schTxt(s)}`));
+    return `<b>${S2.length} ${S2.length === 1 ? 'tela' : 'telas'}:</b>` + qul(S2.map(s => `${eS(s)} — ${ST[stOf(s)].toLowerCase()}, ${sCont(s)}`));
+  }
+  // disponibilidade e histórico
+  if (!has('mais tocou', 'mais exibid', 'mais passou', 'ranking', 'mais assistid') && has('disponibilidade', 'uptime', 'media online', 'menor numero', 'quedas', 'historico', 'ficou offline', 'ultimas 24', 'ultimos 7', 'semana')) {
+    const hrs = has('semana', '7 dias', 'ultimos 7') ? 168 : 24, h = await api('history?hours=' + hrs), sl = h.slots; if (!sl.length) return 'Ainda não há histórico gravado (uma amostra por minuto, a partir de agora).';
+    const avg = sl.reduce((a, x) => a + x.on, 0) / sl.length, mn = sl.reduce((m, x) => x.on < m.on ? x : m, sl[0]), E = sl.reduce((a, x) => a + x.e, 0), O = sl.reduce((a, x) => a + (x.e ? x.o : 0), 0);
+    return `<b>${hrs === 24 ? 'Últimas 24 horas' : 'Últimos 7 dias'}</b>` + qul([`Média online: ${avg.toFixed(1).replace('.', ',')} de ${S.screens.length} telas`, `Menor número online: ${mn.on} (em ${new Date(mn.t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '')})`, `Disponibilidade em horário de funcionamento: ${E ? (O / E * 100).toFixed(1).replace('.', ',') + '%' : '—'}`]) + aL('#/status', 'Ver gráfico no Status');
+  }
+  // mais exibidos
+  if (has('mais tocou', 'mais tocad', 'mais exibid', 'mais passou', 'ranking', 'horas de exibicao', 'tempo de exibicao', 'mais assistid')) {
+    const to = iso(new Date()), from = addDays(to, -6), d = await api(`stats?from=${from}&to=${to}`), C = {}, Sx = {};
+    Object.values(d.days).forEach(day => Object.entries(day).forEach(([sid, e]) => Object.entries(e.c || {}).forEach(([c, v]) => { C[c] = (C[c] || 0) + v[0]; Sx[sid] = (Sx[sid] || 0) + v[0]; })));
+    const top = o => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 5); if (!Object.keys(C).length) return 'Ainda não há dados de exibição nos últimos 7 dias.';
+    return '<b>Últimos 7 dias</b>' + qul(['Conteúdos que mais tocaram: ' + top(C).map(([c, s]) => `${esc(d.names[c] || c)} (${fdur(s)})`).join(', '), 'Telas com mais exibição: ' + top(Sx).map(([sid, s]) => `${esc(d.screens[sid] || sid)} (${fdur(s)})`).join(', ')]) + aL('#/relatorios', 'Abrir Relatórios');
+  }
+  if (has('endereco do servidor', 'url do servidor', 'ip do servidor', 'link do servidor', 'endereco do painel', 'endereco do app')) return `O endereço deste servidor é <b>${esc(location.origin)}</b>. Use esse endereço no app das TVs e <b>${esc(location.origin)}/player.html</b> no navegador.`;
+  if (has('que horas', 'que dia', 'data de hoje', 'dia de hoje')) return `Agora são <b>${hhmm(Date.now())}</b> de <b>${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</b>.`;
+  if (has('meu nome', 'quem sou eu')) return S.account && S.account.name ? `Você está como <b>${esc(S.account.name)}</b>.` : 'Você ainda não definiu seu nome. Em Minha conta → Informações pessoais.';
+  // base de ajuda sem “como”
+  const e = kbFind(t, 1.2); if (e) return e.a();
+  // última tentativa: busca por nomes
+  const q = ws.filter(w => w.length > 2 && !QSTOP.has(w)), found = [];
+  S.screens.forEach(x => q.some(w => (' ' + nz(x.name)).includes(' ' + w)) && found.push(['Tela', eS(x)])); S.media.forEach(x => q.some(w => (' ' + nz(x.name)).includes(' ' + w)) && found.push(['Arquivo', eF(x)])); S.playlists.forEach(x => q.some(w => (' ' + nz(x.name)).includes(' ' + w)) && found.push(['Lista', eP(x)])); (S.layouts || []).forEach(x => q.some(w => (' ' + nz(x.name)).includes(' ' + w)) && found.push(['Zonas', eL(x)]));
+  Q.sug = ['Ajuda', 'Faça um resumo da minha conta.', 'Quais telas estão offline?'];
+  return (found.length ? '<b>Não tenho certeza do que você quer saber, mas encontrei isto:</b>' + qul(found.slice(0, 6).map(([k, l]) => `${k}: ${l}`)) + '<br>' : '') + 'Não entendi bem a pergunta. Tente algo como <i>“Quais telas estão offline?”</i>, <i>“O que tem na lista X?”</i> ou <i>“Como criar zonas?”</i>. Digite <b>ajuda</b> para ver mais exemplos.';
+}
+const nm2 = i => i.kind === 'clock' ? 'Relógio' : i.kind === 'weather' ? 'Clima' : i.kind === 'news' ? 'Notícias' : ((media(i.mediaId) || {}).name || 'arquivo removido');
 addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('#qo')) return qClose();
   const t = e.target, typing = t && /INPUT|TEXTAREA|SELECT/.test(t.tagName) || (t && t.isContentEditable);
@@ -703,7 +879,7 @@ const zRemove = guard(async id => { const l = S.layouts.find(x => x.id === id); 
 function zApply(o, key, quiet) { // aplica um modelo, mantendo lista/giro/ajuste das zonas que já existiam (pela ordem)
   const g = ZE[o], t = ZTPL[key][o === 'h' ? 1 : 2], old = g.zones;
   g.zones = t.map(([fx, fy, fw, fh], i) => { const x = Math.round(fx * g.cols), y = Math.round(fy * g.rows), x2 = Math.round((fx + fw) * g.cols), y2 = Math.round((fy + fh) * g.rows);
-    return { ...(old[i] ? { id: old[i].id, playlistId: old[i].playlistId, rot: old[i].rot, fit: old[i].fit } : { playlistId: null, rot: 0, fit: '' }), x, y, w: Math.max(1, x2 - x), h: Math.max(1, y2 - y) }; });
+    return { ...(old[i] ? { id: old[i].id, playlistId: old[i].playlistId, content: old[i].content, rot: old[i].rot, fit: old[i].fit } : { playlistId: null, rot: 0, fit: '' }), x, y, w: Math.max(1, x2 - x), h: Math.max(1, y2 - y) }; });
   if (!quiet) zDraw();
 }
 function zEditor(id) {
@@ -711,25 +887,41 @@ function zEditor(id) {
   const l = (S.layouts || []).find(x => x.id === id); if (!l) { location.hash = '#/zonas'; return; }
   ZE = JSON.parse(JSON.stringify(l)); zDraw();
 }
-const zHtml = (o, i) => { const g = ZE[o], z = g.zones[i], c = ZCOL[i % ZCOL.length], pl = S.playlists.find(x => x.id === z.playlistId);
-  return `<div class="zn" data-o="${o}" data-i="${i}" style="${zPct(z, g)};border-color:${c};background:${c}55"><b>Zona ${i + 1}</b><span class="lb2 ${pl ? '' : 'no'}">${pl ? esc(pl.name) : 'sem lista'}</span><span class="lb">${Math.round(z.w / g.cols * 100)}% × ${Math.round(z.h / g.rows * 100)}%</span><span class="x" data-act="del">×</span><span class="rs" data-act="rs"></span></div>`; };
+const zHtml = (o, i) => { const g = ZE[o], z = g.zones[i], c = ZCOL[i % ZCOL.length], pl = S.playlists.find(x => x.id === z.playlistId), ct = z.content, md = ct && ct.type === 'file' ? S.media.find(m => m.id === ct.mediaId) : null;
+  const lab = ct ? (ct.type === 'file' ? (md ? md.name : 'arquivo removido') : wsum(ct.item)) : (pl ? pl.name : 'sem lista'), good = ct ? (ct.type !== 'file' || md) : pl;
+  const st = md ? `style="object-fit:${z.fit || 'contain'};object-position:${ct.ax}% ${ct.ay}%;transform-origin:${ct.ax}% ${ct.ay}%;transform:scale(${ct.zoom / 100})"` : '';
+  const th = md ? (md.type === 'image' ? `<img class="zth" src="/media/${md.file}" ${st}>` : `<video class="zth" muted preload="metadata" src="/media/${md.file}#t=0.3" ${st}></video>`) : '';
+  return `<div class="zn" data-o="${o}" data-i="${i}" style="${zPct(z, g)};border-color:${c};background:${c}55">${th}<b>Zona ${i + 1}</b><span class="lb2 ${good ? '' : 'no'}">${esc(lab)}</span><span class="lb">${Math.round(z.w / g.cols * 100)}% × ${Math.round(z.h / g.rows * 100)}%</span><span class="x" data-act="del">×</span><span class="rs" data-act="rs"></span></div>`; };
 function zDraw() {
   const pane = o => { const g = ZE[o], H = o === 'h';
     return `<div class="zp"><div class="tb" style="margin-bottom:8px"><b>${H ? 'Horizontal' : 'Vertical'}</b>
       <label>Grade <input type="number" min="4" max="48" value="${g.cols}" style="width:58px" onchange="zGrid('${o}','cols',this.value)"> × <input type="number" min="4" max="48" value="${g.rows}" style="width:58px" onchange="zGrid('${o}','rows',this.value)"></label>
       <select onchange="if(this.value)zApply('${o}',this.value)"><option value="">Modelos…</option>${Object.entries(ZTPL).map(([k, t]) => `<option value="${k}">${t[0]}</option>`).join('')}</select><button onclick="zAdd('${o}')">+ Zona</button></div>
       <div class="zc" data-o="${o}" onpointerdown="zDown(event)" onpointermove="zMove(event)" onpointerup="zUp(event)" onpointercancel="zUp(event)" style="width:${H ? 'min(100%,560px)' : 'min(100%,230px)'};aspect-ratio:${H ? '16/9' : '9/16'};background-size:${100 / g.cols}% ${100 / g.rows}%">${g.zones.map((_, i) => zHtml(o, i)).join('')}</div>
-      <div style="margin-top:8px">${g.zones.map((z, i) => `<div class="zrow"><i style="background:${ZCOL[i % ZCOL.length]}"></i><b>Zona ${i + 1}</b>
-        <select onchange="zSet('${o}',${i},'playlistId',this.value)">${plOpts(z.playlistId)}</select>
-        <select title="Girar o conteúdo desta zona" onchange="zSet('${o}',${i},'rot',this.value)">${rotOpts(z.rot)}</select>
-        <select title="Ajuste da mídia" onchange="zSet('${o}',${i},'fit',this.value)"><option value="">Ajuste da tela</option>${FIT.map(([v, n]) => `<option value="${v}" ${z.fit === v ? 'selected' : ''}>${n}</option>`).join('')}</select>
-        <button class="d" onclick="zDel('${o}',${i})">Remover</button></div>`).join('') || '<p class="mut">Sem zonas: esta orientação ficará preta. Use um modelo ou "+ Zona".</p>'}</div></div>`; };
+      <div style="margin-top:8px">${g.zones.map((z, i) => zRow(o, i, z)).join('') || '<p class="mut">Sem zonas: esta orientação ficará preta. Use um modelo ou "+ Zona".</p>'}</div></div>`; };
   $('#page').innerHTML = `<div class="card"><div class="ph"><h1>Editor de zonas</h1><button onclick="location.hash='#/zonas'">Voltar</button><button class="p" onclick="zSave()">Salvar</button></div>
   <label class="f">Nome do layout<input id="zn" value="${esc(ZE.name)}" onchange="ZE.name=this.value"></label>
   <p class="mut" style="font-size:13px">Arraste para mover e puxe o canto para redimensionar. Cada orientação tem o seu desenho: a tela usa o horizontal quando está deitada e o vertical quando está em pé (já considerando a rotação configurada na tela). A lista de cada zona toca de forma independente; só a maior zona toca o som dos vídeos.</p>
   <div class="zgrid">${pane('h')}${pane('v')}</div></div>`;
 }
-const zSet = (o, i, k, v) => { ZE[o].zones[i][k] = k === 'rot' ? +v : v; if (k === 'playlistId') zDraw(); };
+const POS = [['50,50', 'Centro'], ['50,0', 'Topo'], ['50,100', 'Base'], ['0,50', 'Esquerda'], ['100,50', 'Direita'], ['0,0', 'Topo à esquerda'], ['100,0', 'Topo à direita'], ['0,100', 'Base à esquerda'], ['100,100', 'Base à direita']];
+const wsum = it => it.kind === 'clock' ? 'Relógio e data' : it.kind === 'weather' ? 'Clima — ' + (it.cfg.city || '?') : 'Notícias (' + (it.cfg.mode === 'slides' ? 'slides' : 'faixa rolando') + ')';
+function zRow(o, i, z) { // uma zona: o que mostra (lista, arquivo ou widget), giro e ajuste
+  const c = z.content, t = c ? c.type : 'list', col = ZCOL[i % ZCOL.length], so = (v, n, cur) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${n}</option>`; let mid = '', ext = '';
+  if (t === 'list') mid = `<select onchange="zSet('${o}',${i},'playlistId',this.value)">${plOpts(z.playlistId)}</select>`;
+  else if (t === 'file') { const fl = S.media;
+    mid = `<select onchange="zFile('${o}',${i},this.value)">${fl.map(m => `<option value="${m.id}" ${m.id === c.mediaId ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}${fl.some(m => m.id === c.mediaId) ? '' : `<option value="" selected>(arquivo removido)</option>`}</select>`;
+    ext = `<div class="zx"><label>Zoom <input type="number" min="20" max="400" step="10" value="${c.zoom}" style="width:72px" onchange="zView('${o}',${i},'zoom',this.value)"> %</label><label>Posição <select onchange="zView('${o}',${i},'pos',this.value)">${POS.map(([v, n]) => so(v, n, c.ax + ',' + c.ay)).join('')}</select></label><span class="mut">Imagem: fica parada. Vídeo: repete sem parar.</span></div>`; }
+  else { const k = c.item.kind; mid = `<select onchange="zWid('${o}',${i},this.value)">${so('clock', 'Relógio e data', k)}${so('weather', 'Clima', k)}${so('news', 'Notícias', k)}</select>${k !== 'clock' ? `<button onclick="zWidCfg('${o}',${i})">Configurar</button>` : ''}`; ext = `<div class="zx mut">${esc(wsum(c.item))}</div>`; }
+  return `<div class="zrow2"><div class="zr1"><i style="background:${col}"></i><b>Zona ${i + 1}</b><select title="O que esta zona mostra" onchange="zType('${o}',${i},this.value)">${so('list', 'Lista de reprodução', t)}${so('file', 'Arquivo', t)}${so('widget', 'Widget', t)}</select>${mid}<select title="Girar o conteúdo desta zona" onchange="zSet('${o}',${i},'rot',this.value)">${rotOpts(z.rot)}</select><select title="Ajuste da mídia na zona" onchange="zSet('${o}',${i},'fit',this.value)"><option value="">Ajuste da tela</option>${FIT.map(([v, n]) => `<option value="${v}" ${z.fit === v ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="d" onclick="zDel('${o}',${i})">Remover</button></div>${ext}</div>`;
+}
+function zType(o, i, t) { ZE[o].zones[i].content = t === 'list' ? null : t === 'file' ? { type: 'file', mediaId: (S.media[0] || {}).id || '', zoom: 100, ax: 50, ay: 50 } : { type: 'widget', item: { kind: 'clock', seconds: 15 } }; zLater(); }
+const zLater = () => setTimeout(zDraw, 0); // redesenha depois do evento (evita erro do navegador ao trocar o campo em foco)
+const zFile = (o, i, v) => { ZE[o].zones[i].content.mediaId = v; zLater(); };
+function zView(o, i, k, v) { const c = ZE[o].zones[i].content; if (k === 'pos') { const p = v.split(',').map(Number); c.ax = p[0]; c.ay = p[1]; } else c.zoom = Math.max(20, Math.min(400, +v || 100)); zLater(); }
+function zWid(o, i, k) { const z = ZE[o].zones[i]; if (z.content.item.kind === k) return; z.content.item = k === 'clock' ? { kind: 'clock', seconds: 15 } : { kind: k, seconds: 15, cfg: JSON.parse(JSON.stringify(WDEF[k])) }; zLater(); if (k !== 'clock') setTimeout(() => zWidCfg(o, i), 10); }
+function zWidCfg(o, i) { const it = ZE[o].zones[i].content.item; WM = { zone: { o, i }, id: '', k: -1, kind: it.kind, seconds: it.seconds, cfg: { ...WDEF[it.kind], ...JSON.parse(JSON.stringify(it.cfg || {})) }, res: [] }; wOpen(); }
+const zSet = (o, i, k, v) => { ZE[o].zones[i][k] = k === 'rot' ? +v : v; if (k === 'playlistId') zLater(); };
 function zAdd(o) { const g = ZE[o]; if (g.zones.length >= 20) return toast('Máximo de 20 zonas'); const w = Math.max(1, Math.round(g.cols / 3)), h = Math.max(1, Math.round(g.rows / 3)), n = g.zones.length % 4;
   g.zones.push({ x: Math.min(g.cols - w, Math.floor((g.cols - w) / 2) + n), y: Math.min(g.rows - h, Math.floor((g.rows - h) / 2) + n), w, h, playlistId: null, rot: 0, fit: '' }); zDraw(); }
 const zDel = (o, i) => { ZE[o].zones.splice(i, 1); zDraw(); };
@@ -752,7 +944,7 @@ function zMove(e) {
 }
 const zUp = () => { ZD = null; };
 const zSave = guard(async () => {
-  ZE.name = $('#zn').value.trim() || 'Layout sem nome'; const r = await send('layouts', 'POST', ZE); await load(); const nl = [ZE.h, ZE.v].reduce((a, g) => a + g.zones.filter(z => !z.playlistId).length, 0); toast(nl ? `Layout salvo. Atenção: ${nl} zona(s) sem lista ficam pretas.` : 'Layout salvo');
+  ZE.name = $('#zn').value.trim() || 'Layout sem nome'; const r = await send('layouts', 'POST', ZE); await load(); const nl = [ZE.h, ZE.v].reduce((a, g) => a + g.zones.filter(z => !z.playlistId && !z.content).length, 0); toast(nl ? `Layout salvo. Atenção: ${nl} zona(s) sem lista ficam pretas.` : 'Layout salvo');
   if (!ZE.id) location.hash = '#/zonas/' + r.id; else { ZE = JSON.parse(JSON.stringify(S.layouts.find(l => l.id === ZE.id) || ZE)); zDraw(); }
 });
 
